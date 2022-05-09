@@ -1,3 +1,6 @@
 [submodule "third_party/drogon"]
 	path = third_party/drogon
 	url = https://github.com/drogonframework/drogon
+[submodule "third_party/bcrypt"]
+	path = third_party/bcrypt
+	url = https://github.com/kelektiv/node.bcrypt.js

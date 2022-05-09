@@ -1,11 +1,12 @@
 #include <drogon/drogon.h>
+#include <sodium.h>
 
 int main()
 {
-  drogon::app().addListener("127.0.0.1", 8848);
+  if (sodium_init() == -1)
+    return 1;
   // Load config file
-  // drogon::app().loadConfigFile("../config.json");
-  drogon::app().createDbClient("mysql", "127.0.0.1", 3306, "database_test", "root", "zhangyifan818").run();
+  drogon::app().loadConfigFile("../config.json").run();
 
   return 0;
 }
