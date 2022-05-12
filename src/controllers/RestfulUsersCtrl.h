@@ -18,30 +18,29 @@ using namespace drogon_model::database_test;
  * this class is a restful API controller for reading and writing the users table.
  */
 
-class RestfulUsersCtrl: public drogon::HttpController<RestfulUsersCtrl>, public RestfulUsersCtrlBase
+class RestfulUsersCtrl : public drogon::HttpController<RestfulUsersCtrl>, public RestfulUsersCtrlBase
 {
-  public:
-    METHOD_LIST_BEGIN
-    ADD_METHOD_TO(RestfulUsersCtrl::getOne,"/users/{1}",Get,Options);
-    ADD_METHOD_TO(RestfulUsersCtrl::updateOne,"/users/{1}",Put,Options);
-    ADD_METHOD_TO(RestfulUsersCtrl::deleteOne,"/users/{1}",Delete,Options);
-    ADD_METHOD_TO(RestfulUsersCtrl::get,"/users",Get,Options);
-    ADD_METHOD_TO(RestfulUsersCtrl::create,"/users",Post,Options);
-    //ADD_METHOD_TO(RestfulUsersCtrl::update,"/users",Put,Options);
-    METHOD_LIST_END
-     
-    void getOne(const HttpRequestPtr &req,
-                std::function<void(const HttpResponsePtr &)> &&callback,
-                Users::PrimaryKeyType &&id);
-    void updateOne(const HttpRequestPtr &req,
-                   std::function<void(const HttpResponsePtr &)> &&callback,
-                   Users::PrimaryKeyType &&id);
-    void deleteOne(const HttpRequestPtr &req,
-                   std::function<void(const HttpResponsePtr &)> &&callback,
-                   Users::PrimaryKeyType &&id);
-    void get(const HttpRequestPtr &req,
-             std::function<void(const HttpResponsePtr &)> &&callback);
-    void create(const HttpRequestPtr &req,
-             std::function<void(const HttpResponsePtr &)> &&callback);
+public:
+  METHOD_LIST_BEGIN
+  ADD_METHOD_TO(RestfulUsersCtrl::getOne, "/users/{1}", Get, Options);
+  ADD_METHOD_TO(RestfulUsersCtrl::updateOne, "/users/{1}", Put, Options);
+  ADD_METHOD_TO(RestfulUsersCtrl::deleteOne, "/users/{1}", Delete, Options);
+  ADD_METHOD_TO(RestfulUsersCtrl::get, "/users", Get, Options, "LoginFilter");
+  ADD_METHOD_TO(RestfulUsersCtrl::create, "/users", Post, Options);
+  // ADD_METHOD_TO(RestfulUsersCtrl::update,"/users",Put,Options);
+  METHOD_LIST_END
 
+  void getOne(const HttpRequestPtr &req,
+              std::function<void(const HttpResponsePtr &)> &&callback,
+              Users::PrimaryKeyType &&id);
+  void updateOne(const HttpRequestPtr &req,
+                 std::function<void(const HttpResponsePtr &)> &&callback,
+                 Users::PrimaryKeyType &&id);
+  void deleteOne(const HttpRequestPtr &req,
+                 std::function<void(const HttpResponsePtr &)> &&callback,
+                 Users::PrimaryKeyType &&id);
+  void get(const HttpRequestPtr &req,
+           std::function<void(const HttpResponsePtr &)> &&callback);
+  void create(const HttpRequestPtr &req,
+              std::function<void(const HttpResponsePtr &)> &&callback);
 };

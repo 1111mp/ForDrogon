@@ -18,7 +18,7 @@
       //address: Ip address,0.0.0.0 by default
       "address": "127.0.0.1",
       //port: Port number
-      "port": 8848,
+      "port": 3000,
       //https: If true, use https for security,false by default
       "https": false
     }
@@ -229,5 +229,12 @@
     }
   ],
   //custom_config: custom configuration for users. This object can be get by the app().getCustomConfig() method.
-  "custom_config": {}
+  "custom_config": {
+    // JsonWebTokens configuration
+    "jwt": {
+      "private_key": "drogon_jwt_filter_example_cool_private_key",
+      "issuer": "auth.domain.pt",
+      "audience": "domain.pt"
+    }
+  }
 }

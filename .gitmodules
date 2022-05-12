@@ -4,3 +4,6 @@
 [submodule "third_party/bcrypt"]
 	path = third_party/bcrypt
 	url = https://github.com/kelektiv/node.bcrypt.js
+[submodule "third_party/jwt-cpp"]
+	path = third_party/jwt-cpp
+	url = https://github.com/Thalhammer/jwt-cpp

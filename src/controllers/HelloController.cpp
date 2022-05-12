@@ -21,8 +21,6 @@ protected:
   void genericHello(const HttpRequestPtr &,
                     std::function<void(const HttpResponsePtr &)> &&callback)
   {
-    orm::DbClientPtr clientPtr = app().getDbClient();
-
     auto resp = HttpResponse::newHttpResponse();
     resp->setBody(
         "Hello, this is a generic hello message from the SayHello "

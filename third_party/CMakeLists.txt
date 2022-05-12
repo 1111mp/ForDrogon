@@ -2,6 +2,10 @@ message(STATUS "################Add Module Thgirdparty################")
 
 add_subdirectory(drogon)
 
+set(JWT_BUILD_EXAMPLES OFF)
+set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@1.1")
+add_subdirectory(jwt-cpp)
+
 add_library(bcrypt
   bcrypt/src/node_blf.h
   bcrypt/src/bcrypt.cc
