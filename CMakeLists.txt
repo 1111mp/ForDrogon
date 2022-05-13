@@ -40,5 +40,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   drogon
   jwt-cpp
   bcrypt
+  stduuid
   sodium
 )

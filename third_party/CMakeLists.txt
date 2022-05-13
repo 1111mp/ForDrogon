@@ -2,6 +2,9 @@ message(STATUS "################Add Module Thgirdparty################")
 
 add_subdirectory(drogon)
 
+set(UUID_BUILD_TESTS OFF)
+add_subdirectory(stduuid)
+
 set(JWT_BUILD_EXAMPLES OFF)
 set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@1.1")
 add_subdirectory(jwt-cpp)

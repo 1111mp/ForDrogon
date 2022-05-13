@@ -8,35 +8,38 @@
 #include "RestfulUsersCtrl.h"
 #include <string>
 
+
 void RestfulUsersCtrl::getOne(const HttpRequestPtr &req,
-															std::function<void(const HttpResponsePtr &)> &&callback,
-															Users::PrimaryKeyType &&id)
+                              std::function<void(const HttpResponsePtr &)> &&callback,
+                              Users::PrimaryKeyType &&id)
 {
-	RestfulUsersCtrlBase::getOne(req, std::move(callback), std::move(id));
+    RestfulUsersCtrlBase::getOne(req, std::move(callback), std::move(id));
 }
+
 
 void RestfulUsersCtrl::updateOne(const HttpRequestPtr &req,
-																 std::function<void(const HttpResponsePtr &)> &&callback,
-																 Users::PrimaryKeyType &&id)
+                                 std::function<void(const HttpResponsePtr &)> &&callback,
+                                 Users::PrimaryKeyType &&id)
 {
-	RestfulUsersCtrlBase::updateOne(req, std::move(callback), std::move(id));
+    RestfulUsersCtrlBase::updateOne(req, std::move(callback), std::move(id));
 }
 
+
 void RestfulUsersCtrl::deleteOne(const HttpRequestPtr &req,
-																 std::function<void(const HttpResponsePtr &)> &&callback,
-																 Users::PrimaryKeyType &&id)
+                                 std::function<void(const HttpResponsePtr &)> &&callback,
+                                 Users::PrimaryKeyType &&id)
 {
-	RestfulUsersCtrlBase::deleteOne(req, std::move(callback), std::move(id));
+    RestfulUsersCtrlBase::deleteOne(req, std::move(callback), std::move(id));
 }
 
 void RestfulUsersCtrl::get(const HttpRequestPtr &req,
-													 std::function<void(const HttpResponsePtr &)> &&callback)
+                           std::function<void(const HttpResponsePtr &)> &&callback)
 {
-	RestfulUsersCtrlBase::get(req, std::move(callback));
+    RestfulUsersCtrlBase::get(req, std::move(callback));
 }
 
 void RestfulUsersCtrl::create(const HttpRequestPtr &req,
-															std::function<void(const HttpResponsePtr &)> &&callback)
+                              std::function<void(const HttpResponsePtr &)> &&callback)
 {
-	RestfulUsersCtrlBase::create(req, std::move(callback));
+    RestfulUsersCtrlBase::create(req, std::move(callback));
 }

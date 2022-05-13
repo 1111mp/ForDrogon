@@ -7,3 +7,6 @@
 [submodule "third_party/jwt-cpp"]
 	path = third_party/jwt-cpp
 	url = https://github.com/Thalhammer/jwt-cpp
+[submodule "third_party/stduuid"]
+	path = third_party/stduuid
+	url = https://github.com/mariusbancila/stduuid
