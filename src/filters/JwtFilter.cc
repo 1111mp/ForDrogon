@@ -34,12 +34,13 @@ namespace api::v1::filters
 		try
 		{
 			auto redisClientPtr = app().getRedisClient();
+			auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + headers["userid"];
 			auto token = redisClientPtr->execCommandSync<std::string>(
 					[](const nosql::RedisResult &r)
 					{
 						return r.asString();
 					},
-					"get %s", headers["token"].data());
+					"hget %s %s", auth.data(), headers["token"].data());
 
 			std::map<std::string, drogon::any> jwtAttributes = JWT::decodeToken(token);
 

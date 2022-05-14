@@ -235,6 +235,10 @@
       "private_key": "drogon_jwt_filter_example_cool_private_key",
       "issuer": "auth.domain.pt",
       "audience": "domain.pt"
+    },
+    "redis": {
+      "auth_key": "user_auth",
+      "limit_key": "limit_date"
     }
   }
 }

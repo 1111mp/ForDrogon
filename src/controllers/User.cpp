@@ -37,10 +37,10 @@ namespace api::v1
 				Criteria(Users::Cols::_account, CompareOperator::EQ, (*jsonPtr)["account"]),
 				[req, jsonPtr, callbackPtr, this](const Users &user)
 				{
-					Json::Value resultJson;
 					if (!Utils::Bcrypt::compare((*jsonPtr)["pwd"].asString(), user.getPwd()->data()))
 					{
 						// Compare password hash.
+						Json::Value resultJson;
 						resultJson["code"] = k403Forbidden;
 						resultJson["msg"] = "Incorrect password.";
 						return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
@@ -49,6 +49,7 @@ namespace api::v1
 					try
 					{
 						auto userJson = makeJson(req, user);
+						userJson.removeMember("pwd");
 
 						Utils::jwt::JWT jwtGenerated = Utils::jwt::JWT::generateToken(
 								{
@@ -59,33 +60,46 @@ namespace api::v1
 						auto token = jwtGenerated.getToken();
 						auto uuid = Utils::uuid::genUUID();
 
-						try
-						{
-							auto redisClientPtr = getRedisClient();
-							redisClientPtr->execCommandSync<std::string>(
-									[](const nosql::RedisResult &r)
-									{
-										return r.asString();
-									},
-									"set %s %s", uuid.data(), token.data());
+						auto redisClientPtr = getRedisClient();
 
-							userJson.removeMember("pwd");
+						redisClientPtr->newTransactionAsync(
+								[uuid, token, userJson, callbackPtr](const nosql::RedisTransactionPtr &transPtr)
+								{
+									auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + userJson["id"].asString();
 
-							resultJson["code"] = k200OK;
-							resultJson["token"] = uuid;
-							resultJson["data"] = userJson;
-							return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
-						}
-						catch (const nosql::RedisException &err)
-						{
-							LOG_ERROR << err.what();
-							Json::Value ret;
-							ret["code"] = k500InternalServerError;
-							ret["msg"] = err.what();
-							auto resp = HttpResponse::newHttpJsonResponse(ret);
-							resp->setStatusCode(k500InternalServerError);
-							return (*callbackPtr)(resp);
-						}
+									LOG_INFO << auth;
+									LOG_INFO << uuid;
+
+									transPtr->execCommandAsync(
+											[](const drogon::nosql::RedisResult &r) { /* this command works */ },
+											[](const std::exception &err) { /* this command failed */ },
+											"del %s", auth.data());
+
+									transPtr->execCommandAsync(
+											[](const drogon::nosql::RedisResult &r) { /* this command works */ },
+											[](const std::exception &err) { /* this command failed */ },
+											"hset %s %s %s", auth.data(), uuid.data(), token.data());
+
+									transPtr->execute(
+											[uuid, userJson, callbackPtr](const drogon::nosql::RedisResult &r)
+											{
+												Json::Value resultJson;
+												resultJson["code"] = k200OK;
+												resultJson["token"] = uuid;
+												resultJson["data"] = userJson;
+												return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
+											},
+											[callbackPtr](const std::exception &err)
+											{
+												LOG_ERROR << err.what();
+												Json::Value ret;
+												ret["code"] = k500InternalServerError;
+												ret["msg"] = err.what();
+												auto resp = HttpResponse::newHttpJsonResponse(ret);
+												resp->setStatusCode(k500InternalServerError);
+												return (*callbackPtr)(resp);
+											});
+								});
 					}
 					catch (const std::exception &e)
 					{
