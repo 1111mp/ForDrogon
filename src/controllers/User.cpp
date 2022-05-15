@@ -42,13 +42,13 @@ namespace api::v1
 						// Compare password hash.
 						Json::Value resultJson;
 						resultJson["code"] = k403Forbidden;
-						resultJson["msg"] = "Incorrect password.";
+						resultJson["msg"] = "Incorrect account or password.";
 						return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
 					}
 
 					try
 					{
-						auto userJson = makeJson(req, user);
+						auto userJson = user.toJson();
 						userJson.removeMember("pwd");
 
 						Utils::jwt::JWT jwtGenerated = Utils::jwt::JWT::generateToken(
@@ -67,16 +67,13 @@ namespace api::v1
 								{
 									auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + userJson["id"].asString();
 
-									LOG_INFO << auth;
-									LOG_INFO << uuid;
-
 									transPtr->execCommandAsync(
 											[](const drogon::nosql::RedisResult &r) { /* this command works */ },
 											[](const std::exception &err) { /* this command failed */ },
 											"del %s", auth.data());
 
 									transPtr->execCommandAsync(
-											[](const drogon::nosql::RedisResult &r) { /* this command works */ },
+											[](const nosql::RedisResult &r) { /* this command works */ },
 											[](const std::exception &err) { /* this command failed */ },
 											"hset %s %s %s", auth.data(), uuid.data(), token.data());
 
@@ -117,8 +114,105 @@ namespace api::v1
 					LOG_ERROR << e.base().what();
 					Json::Value resultJson;
 					resultJson["code"] = k500InternalServerError;
-					resultJson["msg"] = "database error";
+					resultJson["msg"] = "database error.";
 					return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
+				});
+	}
+
+	void User::logout(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
+	{
+		auto userID = req->getAttributes()->get<std::string>("jwt_userid");
+		auto redisClientPtr = getRedisClient();
+		auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + userID;
+
+		redisClientPtr->execCommandAsync(
+				[callback](const nosql::RedisResult &r)
+				{
+					Json::Value resultJson;
+					resultJson["code"] = k200OK;
+					resultJson["msg"] = "Sign out successfully.";
+					return callback(HttpResponse::newHttpJsonResponse(resultJson));
+				},
+				[callback](const std::exception &err)
+				{
+					LOG_ERROR << err.what();
+					Json::Value resultJson;
+					resultJson["code"] = k500InternalServerError;
+					resultJson["msg"] = err.what();
+					return callback(HttpResponse::newHttpJsonResponse(resultJson));
+				},
+				"del %s", auth.data());
+	}
+
+	void User::registerHandler(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
+	{
+		auto jsonPtr = req->getJsonObject();
+		if (!jsonPtr || !jsonPtr->isMember("account") || !jsonPtr->isMember("pwd"))
+		{
+			Json::Value resultJson;
+			resultJson["code"] = k400BadRequest;
+			resultJson["msg"] = "Missing account or password.";
+			return callback(HttpResponse::newHttpJsonResponse(resultJson));
+		}
+
+		auto dbClientPtr = getDbClient();
+		Mapper<Users> mapper(dbClientPtr);
+		auto now = trantor::Date::now().toDbStringLocal();
+		LOG_INFO << "Now: " << now;
+		(*jsonPtr)["registime"] = (*jsonPtr)["updatetime"] = now;
+		Users object = Users(*jsonPtr);
+		auto callbackPtr =
+				std::make_shared<std::function<void(const HttpResponsePtr &)>>(
+						std::move(callback));
+		mapper.insert(
+				object,
+				[req, jsonPtr, callbackPtr, this](Users user)
+				{
+					auto userJson = user.toJson();
+					userJson.removeMember("pwd");
+
+					Utils::jwt::JWT jwtGenerated = Utils::jwt::JWT::generateToken(
+							{
+									{"userid", picojson::value(userJson["id"].asInt64())},
+							},
+							jsonPtr->isMember("member") && (*jsonPtr)["member"].asBool());
+
+					auto token = jwtGenerated.getToken();
+					auto uuid = Utils::uuid::genUUID();
+
+					auto redisClientPtr = getRedisClient();
+					auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + userJson["id"].asString();
+
+					redisClientPtr->execCommandAsync(
+							[uuid, userJson, callbackPtr](const drogon::nosql::RedisResult &r)
+							{
+								Json::Value resultJson;
+								resultJson["code"] = k200OK;
+								resultJson["token"] = uuid;
+								resultJson["data"] = userJson;
+								return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
+							},
+							[callbackPtr](const std::exception &err)
+							{
+								LOG_ERROR << err.what();
+								Json::Value resultJson;
+								resultJson["code"] = k500InternalServerError;
+								resultJson["msg"] = err.what();
+								auto resp = HttpResponse::newHttpJsonResponse(resultJson);
+								resp->setStatusCode(k500InternalServerError);
+								return (*callbackPtr)(resp);
+							},
+							"hset %s %s %s", auth.data(), uuid.data(), token.data());
+				},
+				[callbackPtr](const DrogonDbException &err)
+				{
+					LOG_ERROR << err.base().what();
+					Json::Value resultJson;
+					resultJson["code"] = k500InternalServerError;
+					resultJson["msg"] = err.base().what();
+					auto resp = HttpResponse::newHttpJsonResponse(resultJson);
+					resp->setStatusCode(k500InternalServerError);
+					return (*callbackPtr)(resp);
 				});
 	}
 

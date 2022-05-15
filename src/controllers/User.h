@@ -8,7 +8,6 @@
 #pragma once
 
 #include <drogon/HttpController.h>
-#include <drogon/orm/RestfulController.h>
 
 #include "Users.h"
 using namespace drogon;
@@ -22,39 +21,18 @@ using namespace drogon_model::database_test;
 namespace api::v1
 {
 
-  class User : public drogon::HttpController<User>, public RestfulController
+  class User : public drogon::HttpController<User>
   {
   public:
     METHOD_LIST_BEGIN
     METHOD_ADD(User::login, "/login", Post, Options);
+    METHOD_ADD(User::logout, "/logout", Get, Options);
+    METHOD_ADD(User::registerHandler, "/register", Post, Options);
     METHOD_LIST_END
 
-    User()
-        : RestfulController({"id",
-                             "account",
-                             "pwd",
-                             "avatar",
-                             "email",
-                             "regisTime",
-                             "updateTime"})
-    {
-      /**
-       * The items in the vector are aliases of column names in the table.
-       * if one item is set to an empty string, the related column is not sent
-       * to clients.
-       */
-      enableMasquerading({
-          "id",        // the alias for the id column.
-          "account",   // the alias for the account column.
-          "pwd",       // the alias for the pwd column.
-          "avatar",    // the alias for the avatar column.
-          "email",     // the alias for the email column.
-          "regisTime", // the alias for the regisTime column.
-          "updateTime" // the alias for the updateTime column.
-      });
-    }
-
     void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void logout(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    void registerHandler(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
 
   private:
     orm::DbClientPtr getDbClient()

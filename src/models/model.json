@@ -34,9 +34,7 @@
           //before_db_write: name of the method which is called before writing to database, signature: void([const] std::shared_ptr [&])
           "before_db_write": "encrypt_password"
         },
-        "includes": [
-          "\"ConvertForTable.h\""
-        ]
+        "includes": ["\"ConvertForTable.h\""]
       }
     ]
   },

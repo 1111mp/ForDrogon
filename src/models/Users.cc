@@ -19,8 +19,8 @@ const std::string Users::Cols::_account = "account";
 const std::string Users::Cols::_pwd = "pwd";
 const std::string Users::Cols::_avatar = "avatar";
 const std::string Users::Cols::_email = "email";
-const std::string Users::Cols::_regisTime = "regisTime";
-const std::string Users::Cols::_updateTime = "updateTime";
+const std::string Users::Cols::_registime = "registime";
+const std::string Users::Cols::_updatetime = "updatetime";
 const std::string Users::primaryKeyName = "id";
 const bool Users::hasPrimaryKey = true;
 const std::string Users::tableName = "users";
@@ -31,8 +31,8 @@ const std::vector<typename Users::MetaData> Users::metaData_={
 {"pwd","std::string","character varying",255,0,0,1},
 {"avatar","std::string","character varying",255,0,0,0},
 {"email","std::string","character varying",64,0,0,0},
-{"regisTime","::trantor::Date","timestamp with time zone",0,0,0,0},
-{"updateTime","::trantor::Date","timestamp with time zone",0,0,0,0}
+{"registime","::trantor::Date","timestamp with time zone",0,0,0,0},
+{"updatetime","::trantor::Date","timestamp with time zone",0,0,0,0}
 };
 const std::string &Users::getColumnName(size_t index) noexcept(false)
 {
@@ -63,9 +63,9 @@ Users::Users(const Row &r, const ssize_t indexOffset) noexcept
         {
             email_=std::make_shared<std::string>(r["email"].as<std::string>());
         }
-        if(!r["regisTime"].isNull())
+        if(!r["registime"].isNull())
         {
-            auto timeStr = r["regisTime"].as<std::string>();
+            auto timeStr = r["registime"].as<std::string>();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -85,9 +85,9 @@ Users::Users(const Row &r, const ssize_t indexOffset) noexcept
                 registime_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
-        if(!r["updateTime"].isNull())
+        if(!r["updatetime"].isNull())
         {
-            auto timeStr = r["updateTime"].as<std::string>();
+            auto timeStr = r["updatetime"].as<std::string>();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -337,12 +337,12 @@ Users::Users(const Json::Value &pJson) noexcept(false)
             email_=std::make_shared<std::string>(pJson["email"].asString());
         }
     }
-    if(pJson.isMember("regisTime"))
+    if(pJson.isMember("registime"))
     {
         dirtyFlag_[5]=true;
-        if(!pJson["regisTime"].isNull())
+        if(!pJson["registime"].isNull())
         {
-            auto timeStr = pJson["regisTime"].asString();
+            auto timeStr = pJson["registime"].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -363,12 +363,12 @@ Users::Users(const Json::Value &pJson) noexcept(false)
             }
         }
     }
-    if(pJson.isMember("updateTime"))
+    if(pJson.isMember("updatetime"))
     {
         dirtyFlag_[6]=true;
-        if(!pJson["updateTime"].isNull())
+        if(!pJson["updatetime"].isNull())
         {
-            auto timeStr = pJson["updateTime"].asString();
+            auto timeStr = pJson["updatetime"].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -535,12 +535,12 @@ void Users::updateByJson(const Json::Value &pJson) noexcept(false)
             email_=std::make_shared<std::string>(pJson["email"].asString());
         }
     }
-    if(pJson.isMember("regisTime"))
+    if(pJson.isMember("registime"))
     {
         dirtyFlag_[5] = true;
-        if(!pJson["regisTime"].isNull())
+        if(!pJson["registime"].isNull())
         {
-            auto timeStr = pJson["regisTime"].asString();
+            auto timeStr = pJson["registime"].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -561,12 +561,12 @@ void Users::updateByJson(const Json::Value &pJson) noexcept(false)
             }
         }
     }
-    if(pJson.isMember("updateTime"))
+    if(pJson.isMember("updatetime"))
     {
         dirtyFlag_[6] = true;
-        if(!pJson["updateTime"].isNull())
+        if(!pJson["updatetime"].isNull())
         {
-            auto timeStr = pJson["updateTime"].asString();
+            auto timeStr = pJson["updatetime"].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -769,8 +769,8 @@ const std::vector<std::string> &Users::insertColumns() noexcept
         "pwd",
         "avatar",
         "email",
-        "regisTime",
-        "updateTime"
+        "registime",
+        "updatetime"
     };
     return inCols;
 }
@@ -989,19 +989,19 @@ Json::Value Users::toJson() const
     }
     if(getRegistime())
     {
-        ret["regisTime"]=getRegistime()->toDbStringLocal();
+        ret["registime"]=getRegistime()->toDbStringLocal();
     }
     else
     {
-        ret["regisTime"]=Json::Value();
+        ret["registime"]=Json::Value();
     }
     if(getUpdatetime())
     {
-        ret["updateTime"]=getUpdatetime()->toDbStringLocal();
+        ret["updatetime"]=getUpdatetime()->toDbStringLocal();
     }
     else
     {
-        ret["updateTime"]=Json::Value();
+        ret["updatetime"]=Json::Value();
     }
     return ret;
 }
@@ -1134,19 +1134,19 @@ Json::Value Users::toMasqueradedJson(
     }
     if(getRegistime())
     {
-        ret["regisTime"]=getRegistime()->toDbStringLocal();
+        ret["registime"]=getRegistime()->toDbStringLocal();
     }
     else
     {
-        ret["regisTime"]=Json::Value();
+        ret["registime"]=Json::Value();
     }
     if(getUpdatetime())
     {
-        ret["updateTime"]=getUpdatetime()->toDbStringLocal();
+        ret["updatetime"]=getUpdatetime()->toDbStringLocal();
     }
     else
     {
-        ret["updateTime"]=Json::Value();
+        ret["updatetime"]=Json::Value();
     }
     return ret;
 }
@@ -1183,14 +1183,14 @@ bool Users::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(4, "email", pJson["email"], err, true))
             return false;
     }
-    if(pJson.isMember("regisTime"))
+    if(pJson.isMember("registime"))
     {
-        if(!validJsonOfField(5, "regisTime", pJson["regisTime"], err, true))
+        if(!validJsonOfField(5, "registime", pJson["registime"], err, true))
             return false;
     }
-    if(pJson.isMember("updateTime"))
+    if(pJson.isMember("updatetime"))
     {
-        if(!validJsonOfField(6, "updateTime", pJson["updateTime"], err, true))
+        if(!validJsonOfField(6, "updatetime", pJson["updatetime"], err, true))
             return false;
     }
     return true;
@@ -1306,14 +1306,14 @@ bool Users::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(4, "email", pJson["email"], err, false))
             return false;
     }
-    if(pJson.isMember("regisTime"))
+    if(pJson.isMember("registime"))
     {
-        if(!validJsonOfField(5, "regisTime", pJson["regisTime"], err, false))
+        if(!validJsonOfField(5, "registime", pJson["registime"], err, false))
             return false;
     }
-    if(pJson.isMember("updateTime"))
+    if(pJson.isMember("updatetime"))
     {
-        if(!validJsonOfField(6, "updateTime", pJson["updateTime"], err, false))
+        if(!validJsonOfField(6, "updatetime", pJson["updatetime"], err, false))
             return false;
     }
     return true;

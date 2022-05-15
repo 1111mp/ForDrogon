@@ -47,8 +47,8 @@ class Users
         static const std::string _pwd;
         static const std::string _avatar;
         static const std::string _email;
-        static const std::string _regisTime;
-        static const std::string _updateTime;
+        static const std::string _registime;
+        static const std::string _updatetime;
     };
 
     const static int primaryKeyNumber;
@@ -147,21 +147,21 @@ class Users
     void setEmail(std::string &&pEmail) noexcept;
     void setEmailToNull() noexcept;
 
-    /**  For column regisTime  */
-    ///Get the value of the column regisTime, returns the default value if the column is null
+    /**  For column registime  */
+    ///Get the value of the column registime, returns the default value if the column is null
     const ::trantor::Date &getValueOfRegistime() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
     const std::shared_ptr<::trantor::Date> &getRegistime() const noexcept;
-    ///Set the value of the column regisTime
+    ///Set the value of the column registime
     void setRegistime(const ::trantor::Date &pRegistime) noexcept;
     void setRegistimeToNull() noexcept;
 
-    /**  For column updateTime  */
-    ///Get the value of the column updateTime, returns the default value if the column is null
+    /**  For column updatetime  */
+    ///Get the value of the column updatetime, returns the default value if the column is null
     const ::trantor::Date &getValueOfUpdatetime() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
     const std::shared_ptr<::trantor::Date> &getUpdatetime() const noexcept;
-    ///Set the value of the column updateTime
+    ///Set the value of the column updatetime
     void setUpdatetime(const ::trantor::Date &pUpdatetime) noexcept;
     void setUpdatetimeToNull() noexcept;
 
@@ -243,12 +243,12 @@ class Users
         }
         if(dirtyFlag_[5])
         {
-            sql += "regisTime,";
+            sql += "registime,";
             ++parametersCount;
         }
         if(dirtyFlag_[6])
         {
-            sql += "updateTime,";
+            sql += "updatetime,";
             ++parametersCount;
         }
         needSelection=true;

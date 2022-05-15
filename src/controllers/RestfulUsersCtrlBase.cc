@@ -428,8 +428,8 @@ RestfulUsersCtrlBase::RestfulUsersCtrlBase()
           "pwd",
           "avatar",
           "email",
-          "regisTime",
-          "updateTime"
+          "registime",
+          "updatetime"
       })
 {
    /**
@@ -443,7 +443,7 @@ RestfulUsersCtrlBase::RestfulUsersCtrlBase()
         "pwd", // the alias for the pwd column.
         "avatar", // the alias for the avatar column.
         "email", // the alias for the email column.
-        "regisTime", // the alias for the regisTime column.
-        "updateTime"  // the alias for the updateTime column.
+        "registime", // the alias for the registime column.
+        "updatetime"  // the alias for the updatetime column.
     });
 }
