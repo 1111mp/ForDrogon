@@ -38,9 +38,21 @@ namespace api::v1::filters
 			auto token = redisClientPtr->execCommandSync<std::string>(
 					[](const nosql::RedisResult &r)
 					{
+						if (r.type() == nosql::RedisResultType::kNil)
+							return std::string{};
 						return r.asString();
 					},
 					"hget %s %s", auth.data(), headers["token"].data());
+
+			if (token.empty())
+			{
+				Json::Value resultJson;
+				resultJson["code"] = k401Unauthorized;
+				resultJson["msg"] = "Token is invalid.";
+				auto res = HttpResponse::newHttpJsonResponse(resultJson);
+				res->setStatusCode(k401Unauthorized);
+				return fcb(res);
+			}
 
 			std::map<std::string, drogon::any> jwtAttributes = JWT::decodeToken(token);
 
@@ -48,10 +60,22 @@ namespace api::v1::filters
 			{
 				Json::Value resultJson;
 				resultJson["code"] = k401Unauthorized;
-				resultJson["msg"] = "Token is invalid!";
+				resultJson["msg"] = "Token is invalid.";
 				auto res = HttpResponse::newHttpJsonResponse(resultJson);
 				res->setStatusCode(k401Unauthorized);
 				return fcb(res);
+			}
+
+			auto member = std::any_cast<bool>(jwtAttributes["member"]);
+			if (!member)
+			{
+				// The validity period is automatically extended by one hour.
+				redisClientPtr->execCommandSync<int>(
+						[](const nosql::RedisResult &r)
+						{
+							return r.asInteger();
+						},
+						"expire %s %i", auth.data(), 3600);
 			}
 
 			// Save the claims on attributes, for on next endpoint to be accessible
