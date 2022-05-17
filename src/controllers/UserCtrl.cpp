@@ -86,12 +86,13 @@ namespace api::v1
 											"expire %s %lld", auth.data(), expiresAt);
 
 									transPtr->execute(
-											[uuid, userJson, callbackPtr](const nosql::RedisResult &r)
+											[uuid, userJson, expiresAt, callbackPtr](const nosql::RedisResult &r)
 											{
 												Json::Value resultJson;
 												resultJson["code"] = k200OK;
 												resultJson["token"] = uuid;
 												resultJson["data"] = userJson;
+												resultJson["expiresAt"] = expiresAt;
 												return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
 											},
 											[callbackPtr](const std::exception &err)
@@ -261,6 +262,65 @@ namespace api::v1
 
 	void User::deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
+		auto userID = req->getAttributes()->get<int64_t>("jwt_userid");
+		auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + std::to_string(userID);
+
+		auto dbClientPtr = getDbClient();
+		auto callbackPtr =
+				std::make_shared<std::function<void(const HttpResponsePtr &)>>(
+						std::move(callback));
+		drogon::orm::Mapper<Users> mapper(dbClientPtr);
+		mapper.deleteByPrimaryKey(
+				userID,
+				[auth, callbackPtr, this](const size_t count)
+				{
+					if (count == 1)
+					{
+						// successed
+						auto redisClientPtr = getRedisClient();
+						redisClientPtr->execCommandAsync(
+								[callbackPtr](const nosql::RedisResult &r) {},
+								[callbackPtr](const std::exception &err)
+								{
+									LOG_ERROR << err.what();
+								},
+								"del %s", auth.data());
+
+						Json::Value resultJson;
+						resultJson["code"] = k200OK;
+						resultJson["msg"] = "Successfully.";
+						return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
+					}
+					else if (count == 0)
+					{
+						Json::Value ret;
+						ret["code"] = k404NotFound;
+						ret["msg"] = "No resources deleted";
+						auto resp = HttpResponse::newHttpJsonResponse(ret);
+						resp->setStatusCode(k404NotFound);
+						(*callbackPtr)(resp);
+					}
+					else
+					{
+						LOG_FATAL << "Delete more than one records: " << count;
+						Json::Value ret;
+						ret["code"] = k500InternalServerError;
+						ret["msg"] = "Database error";
+						auto resp = HttpResponse::newHttpJsonResponse(ret);
+						resp->setStatusCode(k500InternalServerError);
+						return (*callbackPtr)(resp);
+					}
+				},
+				[callbackPtr](const DrogonDbException &e)
+				{
+					LOG_ERROR << e.base().what();
+					Json::Value ret;
+					ret["code"] = k500InternalServerError;
+					ret["msg"] = "database error";
+					auto resp = HttpResponse::newHttpJsonResponse(ret);
+					resp->setStatusCode(k500InternalServerError);
+					return (*callbackPtr)(resp);
+				});
 	}
 
 	void User::updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
