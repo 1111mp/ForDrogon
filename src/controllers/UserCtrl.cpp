@@ -86,13 +86,12 @@ namespace api::v1
 											"expire %s %lld", auth.data(), expiresAt);
 
 									transPtr->execute(
-											[uuid, userJson, expiresAt, callbackPtr](const nosql::RedisResult &r)
+											[uuid, userJson, callbackPtr](const nosql::RedisResult &r)
 											{
 												Json::Value resultJson;
 												resultJson["code"] = k200OK;
 												resultJson["token"] = uuid;
 												resultJson["data"] = userJson;
-												resultJson["expiresAt"] = expiresAt;
 												return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resultJson));
 											},
 											[callbackPtr](const std::exception &err)
@@ -137,9 +136,9 @@ namespace api::v1
 
 	void User::logout(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
-		auto userID = req->getAttributes()->get<std::string>("jwt_userid");
+		auto userID = req->getAttributes()->get<int32_t>("jwt_userid");
 		auto redisClientPtr = getRedisClient();
-		auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + userID;
+		auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + std::to_string(userID);
 
 		redisClientPtr->execCommandAsync(
 				[callback](const nosql::RedisResult &r)
@@ -262,7 +261,7 @@ namespace api::v1
 
 	void User::deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
-		auto userID = req->getAttributes()->get<int64_t>("jwt_userid");
+		auto userID = req->getAttributes()->get<int32_t>("jwt_userid");
 		auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + std::to_string(userID);
 
 		auto dbClientPtr = getDbClient();
@@ -326,7 +325,7 @@ namespace api::v1
 	void User::updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
 		auto jsonPtr = req->jsonObject();
-		auto id = req->getAttributes()->get<int64_t>("jwt_userid");
+		auto id = req->getAttributes()->get<int32_t>("jwt_userid");
 		if (!jsonPtr)
 		{
 			Json::Value resJson;
@@ -415,8 +414,9 @@ namespace api::v1
 				});
 	}
 
-	void User::getOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback, Users::PrimaryKeyType &&id)
+	void User::getOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
+		auto id = req->getAttributes()->get<int32_t>("jwt_userid");
 		auto dbClientPtr = getDbClient();
 		auto callbackPtr =
 				std::make_shared<std::function<void(const HttpResponsePtr &)>>(

@@ -28,9 +28,9 @@ namespace api::v1
     METHOD_ADD(User::login, "/login", Post, Options);
     METHOD_ADD(User::logout, "/logout", Get, Options, "api::v1::filters::JwtFilter");
     METHOD_ADD(User::create, "", Post, Options);
-    METHOD_ADD(User::deleteOne, "/op/{1}", Delete, Options, "api::v1::filters::JwtFilter");
-    METHOD_ADD(User::updateOne, "/op/{1}", Put, Options, "api::v1::filters::JwtFilter");
-    METHOD_ADD(User::getOne, "/op/{1}", Get, Options, "api::v1::filters::JwtFilter");
+    METHOD_ADD(User::deleteOne, "", Delete, Options, "api::v1::filters::JwtFilter");
+    METHOD_ADD(User::updateOne, "", Put, Options, "api::v1::filters::JwtFilter");
+    METHOD_ADD(User::getOne, "", Get, Options, "api::v1::filters::JwtFilter");
     METHOD_LIST_END
 
     void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
@@ -38,9 +38,7 @@ namespace api::v1
     void create(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     void deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     void updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-    void getOne(const HttpRequestPtr &req,
-                std::function<void(const HttpResponsePtr &)> &&callback,
-                Users::PrimaryKeyType &&id);
+    void getOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
 
   private:
     orm::DbClientPtr getDbClient()
