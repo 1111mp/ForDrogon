@@ -19,20 +19,20 @@ const std::string Users::Cols::_account = "account";
 const std::string Users::Cols::_pwd = "pwd";
 const std::string Users::Cols::_avatar = "avatar";
 const std::string Users::Cols::_email = "email";
-const std::string Users::Cols::_registime = "registime";
-const std::string Users::Cols::_updatetime = "updatetime";
+const std::string Users::Cols::_regisTime = "regisTime";
+const std::string Users::Cols::_updateTime = "updateTime";
 const std::string Users::primaryKeyName = "id";
 const bool Users::hasPrimaryKey = true;
 const std::string Users::tableName = "users";
 
 const std::vector<typename Users::MetaData> Users::metaData_={
-{"id","int32_t","integer",4,1,1,1},
-{"account","std::string","character varying",11,0,0,0},
-{"pwd","std::string","character varying",255,0,0,1},
-{"avatar","std::string","character varying",255,0,0,0},
-{"email","std::string","character varying",64,0,0,0},
-{"registime","::trantor::Date","timestamp with time zone",0,0,0,0},
-{"updatetime","::trantor::Date","timestamp with time zone",0,0,0,0}
+{"id","int32_t","int(11)",4,1,1,1},
+{"account","std::string","varchar(11)",11,0,0,0},
+{"pwd","std::string","varchar(64)",64,0,0,1},
+{"avatar","std::string","varchar(255)",255,0,0,0},
+{"email","std::string","varchar(64)",64,0,0,0},
+{"regisTime","::trantor::Date","datetime",0,0,0,0},
+{"updateTime","::trantor::Date","datetime",0,0,0,0}
 };
 const std::string &Users::getColumnName(size_t index) noexcept(false)
 {
@@ -63,9 +63,9 @@ Users::Users(const Row &r, const ssize_t indexOffset) noexcept
         {
             email_=std::make_shared<std::string>(r["email"].as<std::string>());
         }
-        if(!r["registime"].isNull())
+        if(!r["regisTime"].isNull())
         {
-            auto timeStr = r["registime"].as<std::string>();
+            auto timeStr = r["regisTime"].as<std::string>();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -85,9 +85,9 @@ Users::Users(const Row &r, const ssize_t indexOffset) noexcept
                 registime_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
-        if(!r["updatetime"].isNull())
+        if(!r["updateTime"].isNull())
         {
-            auto timeStr = r["updatetime"].as<std::string>();
+            auto timeStr = r["updateTime"].as<std::string>();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -337,12 +337,12 @@ Users::Users(const Json::Value &pJson) noexcept(false)
             email_=std::make_shared<std::string>(pJson["email"].asString());
         }
     }
-    if(pJson.isMember("registime"))
+    if(pJson.isMember("regisTime"))
     {
         dirtyFlag_[5]=true;
-        if(!pJson["registime"].isNull())
+        if(!pJson["regisTime"].isNull())
         {
-            auto timeStr = pJson["registime"].asString();
+            auto timeStr = pJson["regisTime"].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -363,12 +363,12 @@ Users::Users(const Json::Value &pJson) noexcept(false)
             }
         }
     }
-    if(pJson.isMember("updatetime"))
+    if(pJson.isMember("updateTime"))
     {
         dirtyFlag_[6]=true;
-        if(!pJson["updatetime"].isNull())
+        if(!pJson["updateTime"].isNull())
         {
-            auto timeStr = pJson["updatetime"].asString();
+            auto timeStr = pJson["updateTime"].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -535,12 +535,12 @@ void Users::updateByJson(const Json::Value &pJson) noexcept(false)
             email_=std::make_shared<std::string>(pJson["email"].asString());
         }
     }
-    if(pJson.isMember("registime"))
+    if(pJson.isMember("regisTime"))
     {
         dirtyFlag_[5] = true;
-        if(!pJson["registime"].isNull())
+        if(!pJson["regisTime"].isNull())
         {
-            auto timeStr = pJson["registime"].asString();
+            auto timeStr = pJson["regisTime"].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -561,12 +561,12 @@ void Users::updateByJson(const Json::Value &pJson) noexcept(false)
             }
         }
     }
-    if(pJson.isMember("updatetime"))
+    if(pJson.isMember("updateTime"))
     {
         dirtyFlag_[6] = true;
-        if(!pJson["updatetime"].isNull())
+        if(!pJson["updateTime"].isNull())
         {
-            auto timeStr = pJson["updatetime"].asString();
+            auto timeStr = pJson["updateTime"].asString();
             struct tm stm;
             memset(&stm,0,sizeof(stm));
             auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
@@ -760,6 +760,7 @@ void Users::setUpdatetimeToNull() noexcept
 
 void Users::updateId(const uint64_t id)
 {
+    id_ = std::make_shared<int32_t>(static_cast<int32_t>(id));
 }
 
 const std::vector<std::string> &Users::insertColumns() noexcept
@@ -769,8 +770,8 @@ const std::vector<std::string> &Users::insertColumns() noexcept
         "pwd",
         "avatar",
         "email",
-        "registime",
-        "updatetime"
+        "regisTime",
+        "updateTime"
     };
     return inCols;
 }
@@ -989,19 +990,19 @@ Json::Value Users::toJson() const
     }
     if(getRegistime())
     {
-        ret["registime"]=getRegistime()->toDbStringLocal();
+        ret["regisTime"]=getRegistime()->toDbStringLocal();
     }
     else
     {
-        ret["registime"]=Json::Value();
+        ret["regisTime"]=Json::Value();
     }
     if(getUpdatetime())
     {
-        ret["updatetime"]=getUpdatetime()->toDbStringLocal();
+        ret["updateTime"]=getUpdatetime()->toDbStringLocal();
     }
     else
     {
-        ret["updatetime"]=Json::Value();
+        ret["updateTime"]=Json::Value();
     }
     return ret;
 }
@@ -1134,19 +1135,19 @@ Json::Value Users::toMasqueradedJson(
     }
     if(getRegistime())
     {
-        ret["registime"]=getRegistime()->toDbStringLocal();
+        ret["regisTime"]=getRegistime()->toDbStringLocal();
     }
     else
     {
-        ret["registime"]=Json::Value();
+        ret["regisTime"]=Json::Value();
     }
     if(getUpdatetime())
     {
-        ret["updatetime"]=getUpdatetime()->toDbStringLocal();
+        ret["updateTime"]=getUpdatetime()->toDbStringLocal();
     }
     else
     {
-        ret["updatetime"]=Json::Value();
+        ret["updateTime"]=Json::Value();
     }
     return ret;
 }
@@ -1183,14 +1184,14 @@ bool Users::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(4, "email", pJson["email"], err, true))
             return false;
     }
-    if(pJson.isMember("registime"))
+    if(pJson.isMember("regisTime"))
     {
-        if(!validJsonOfField(5, "registime", pJson["registime"], err, true))
+        if(!validJsonOfField(5, "regisTime", pJson["regisTime"], err, true))
             return false;
     }
-    if(pJson.isMember("updatetime"))
+    if(pJson.isMember("updateTime"))
     {
-        if(!validJsonOfField(6, "updatetime", pJson["updatetime"], err, true))
+        if(!validJsonOfField(6, "updateTime", pJson["updateTime"], err, true))
             return false;
     }
     return true;
@@ -1306,14 +1307,14 @@ bool Users::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(4, "email", pJson["email"], err, false))
             return false;
     }
-    if(pJson.isMember("registime"))
+    if(pJson.isMember("regisTime"))
     {
-        if(!validJsonOfField(5, "registime", pJson["registime"], err, false))
+        if(!validJsonOfField(5, "regisTime", pJson["regisTime"], err, false))
             return false;
     }
-    if(pJson.isMember("updatetime"))
+    if(pJson.isMember("updateTime"))
     {
-        if(!validJsonOfField(6, "updatetime", pJson["updatetime"], err, false))
+        if(!validJsonOfField(6, "updateTime", pJson["updateTime"], err, false))
             return false;
     }
     return true;
@@ -1433,11 +1434,11 @@ bool Users::validJsonOfField(size_t index,
                 return false;
             }
             // asString().length() creates a string object, is there any better way to validate the length?
-            if(pJson.isString() && pJson.asString().length() > 255)
+            if(pJson.isString() && pJson.asString().length() > 64)
             {
                 err="String length exceeds limit for the " +
                     fieldName +
-                    " field (the maximum value is 255)";
+                    " field (the maximum value is 64)";
                 return false;
             }
 

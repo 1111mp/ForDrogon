@@ -51,6 +51,7 @@ namespace api::v1
 						auto userJson = user.toJson();
 						userJson.removeMember("pwd");
 						auto member = jsonPtr->isMember("member") && (*jsonPtr)["member"].asBool();
+						auto userid = userJson["id"].asInt64();
 
 						Utils::jwt::JWT jwtGenerated = Utils::jwt::JWT::generateToken(
 								{
@@ -136,7 +137,7 @@ namespace api::v1
 
 	void User::logout(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
-		auto userID = req->getAttributes()->get<int32_t>("jwt_userid");
+		auto userID = req->getAttributes()->get<int64_t>("jwt_userid");
 		auto redisClientPtr = getRedisClient();
 		auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + std::to_string(userID);
 
@@ -261,7 +262,7 @@ namespace api::v1
 
 	void User::deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
-		auto userID = req->getAttributes()->get<int32_t>("jwt_userid");
+		auto userID = req->getAttributes()->get<int64_t>("jwt_userid");
 		auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + std::to_string(userID);
 
 		auto dbClientPtr = getDbClient();
@@ -325,7 +326,7 @@ namespace api::v1
 	void User::updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
 		auto jsonPtr = req->jsonObject();
-		auto id = req->getAttributes()->get<int32_t>("jwt_userid");
+		auto id = req->getAttributes()->get<int64_t>("jwt_userid");
 		if (!jsonPtr)
 		{
 			Json::Value resJson;
@@ -416,7 +417,7 @@ namespace api::v1
 
 	void User::getOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 	{
-		auto id = req->getAttributes()->get<int32_t>("jwt_userid");
+		auto id = req->getAttributes()->get<int64_t>("jwt_userid");
 		auto dbClientPtr = getDbClient();
 		auto callbackPtr =
 				std::make_shared<std::function<void(const HttpResponsePtr &)>>(
@@ -429,7 +430,9 @@ namespace api::v1
 				{
 					Json::Value resJson;
 					resJson["code"] = k200OK;
-					resJson["data"] = user.toJson();
+					auto userJson = user.toJson();
+					userJson.removeMember("pwd");
+					resJson["data"] = userJson;
 					return (*callbackPtr)(HttpResponse::newHttpJsonResponse(resJson));
 				},
 				[callbackPtr](const DrogonDbException &e)

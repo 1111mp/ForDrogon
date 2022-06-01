@@ -152,11 +152,11 @@ class Electrons
 
     /**  For column force_update  */
     ///Get the value of the column force_update, returns the default value if the column is null
-    const bool &getValueOfForceUpdate() const noexcept;
+    const int8_t &getValueOfForceUpdate() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<bool> &getForceUpdate() const noexcept;
+    const std::shared_ptr<int8_t> &getForceUpdate() const noexcept;
     ///Set the value of the column force_update
-    void setForceUpdate(const bool &pForceUpdate) noexcept;
+    void setForceUpdate(const int8_t &pForceUpdate) noexcept;
     void setForceUpdateToNull() noexcept;
 
     /**  For column type  */
@@ -170,11 +170,11 @@ class Electrons
 
     /**  For column actived  */
     ///Get the value of the column actived, returns the default value if the column is null
-    const bool &getValueOfActived() const noexcept;
+    const int8_t &getValueOfActived() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<bool> &getActived() const noexcept;
+    const std::shared_ptr<int8_t> &getActived() const noexcept;
     ///Set the value of the column actived
-    void setActived(const bool &pActived) noexcept;
+    void setActived(const int8_t &pActived) noexcept;
 
     /**  For column remark  */
     ///Get the value of the column remark, returns the default value if the column is null
@@ -237,9 +237,9 @@ class Electrons
     std::shared_ptr<std::string> version_;
     std::shared_ptr<std::string> archs_;
     std::shared_ptr<std::string> url_;
-    std::shared_ptr<bool> forceUpdate_;
+    std::shared_ptr<int8_t> forceUpdate_;
     std::shared_ptr<std::string> type_;
-    std::shared_ptr<bool> actived_;
+    std::shared_ptr<int8_t> actived_;
     std::shared_ptr<std::string> remark_;
     std::shared_ptr<std::string> ext_;
     std::shared_ptr<::trantor::Date> createdat_;
@@ -259,13 +259,13 @@ class Electrons
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
-        static const std::string sql="select * from " + tableName + " where id = $1";
+        static const std::string sql="select * from " + tableName + " where id = ?";
         return sql;
     }
 
     static const std::string &sqlForDeletingByPrimaryKey()
     {
-        static const std::string sql="delete from " + tableName + " where id = $1";
+        static const std::string sql="delete from " + tableName + " where id = ?";
         return sql;
     }
     std::string sqlForInserting(bool &needSelection) const
@@ -341,34 +341,31 @@ class Electrons
         else
             sql += ") values (";
 
-        int placeholder=1;
-        char placeholderStr[64];
-        size_t n=0;
         sql +="default,";
         if(dirtyFlag_[1])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[2])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[3])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[4])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[5])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         else
         {
@@ -376,13 +373,13 @@ class Electrons
         }
         if(dirtyFlag_[6])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[7])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         else
         {
@@ -390,36 +387,29 @@ class Electrons
         }
         if(dirtyFlag_[8])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[9])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[10])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[11])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(parametersCount > 0)
         {
             sql.resize(sql.length() - 1);
         }
-        if(needSelection)
-        {
-            sql.append(") returning *");
-        }
-        else
-        {
-            sql.append(1, ')');
-        }
+        sql.append(1, ')');
         LOG_TRACE << sql;
         return sql;
     }

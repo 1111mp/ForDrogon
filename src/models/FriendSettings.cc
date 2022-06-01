@@ -27,15 +27,15 @@ const bool FriendSettings::hasPrimaryKey = true;
 const std::string FriendSettings::tableName = "friend_settings";
 
 const std::vector<typename FriendSettings::MetaData> FriendSettings::metaData_={
-{"id","int32_t","integer",4,1,1,1},
-{"user_id","int32_t","integer",4,0,0,1},
-{"friend_id","int32_t","integer",4,0,0,1},
-{"remark","std::string","character varying",255,0,0,0},
-{"tags","std::string","character varying",255,0,0,0},
-{"astrolabe","bool","boolean",1,0,0,1},
-{"block","bool","boolean",1,0,0,1},
-{"createdAt","::trantor::Date","timestamp with time zone",0,0,0,0},
-{"updatedAt","::trantor::Date","timestamp with time zone",0,0,0,0}
+{"id","int32_t","int(11)",4,1,1,1},
+{"user_id","int32_t","int(11)",4,0,0,1},
+{"friend_id","int32_t","int(11)",4,0,0,1},
+{"remark","std::string","varchar(255)",255,0,0,0},
+{"tags","std::string","varchar(255)",255,0,0,0},
+{"astrolabe","int8_t","tinyint(1)",1,0,0,1},
+{"block","int8_t","tinyint(1)",1,0,0,1},
+{"createdAt","::trantor::Date","datetime",0,0,0,0},
+{"updatedAt","::trantor::Date","datetime",0,0,0,0}
 };
 const std::string &FriendSettings::getColumnName(size_t index) noexcept(false)
 {
@@ -68,11 +68,11 @@ FriendSettings::FriendSettings(const Row &r, const ssize_t indexOffset) noexcept
         }
         if(!r["astrolabe"].isNull())
         {
-            astrolabe_=std::make_shared<bool>(r["astrolabe"].as<bool>());
+            astrolabe_=std::make_shared<int8_t>(r["astrolabe"].as<int8_t>());
         }
         if(!r["block"].isNull())
         {
-            block_=std::make_shared<bool>(r["block"].as<bool>());
+            block_=std::make_shared<int8_t>(r["block"].as<int8_t>());
         }
         if(!r["createdAt"].isNull())
         {
@@ -156,12 +156,12 @@ FriendSettings::FriendSettings(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 5;
         if(!r[index].isNull())
         {
-            astrolabe_=std::make_shared<bool>(r[index].as<bool>());
+            astrolabe_=std::make_shared<int8_t>(r[index].as<int8_t>());
         }
         index = offset + 6;
         if(!r[index].isNull())
         {
-            block_=std::make_shared<bool>(r[index].as<bool>());
+            block_=std::make_shared<int8_t>(r[index].as<int8_t>());
         }
         index = offset + 7;
         if(!r[index].isNull())
@@ -265,7 +265,7 @@ FriendSettings::FriendSettings(const Json::Value &pJson, const std::vector<std::
         dirtyFlag_[5] = true;
         if(!pJson[pMasqueradingVector[5]].isNull())
         {
-            astrolabe_=std::make_shared<bool>(pJson[pMasqueradingVector[5]].asBool());
+            astrolabe_=std::make_shared<int8_t>((int8_t)pJson[pMasqueradingVector[5]].asInt64());
         }
     }
     if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
@@ -273,7 +273,7 @@ FriendSettings::FriendSettings(const Json::Value &pJson, const std::vector<std::
         dirtyFlag_[6] = true;
         if(!pJson[pMasqueradingVector[6]].isNull())
         {
-            block_=std::make_shared<bool>(pJson[pMasqueradingVector[6]].asBool());
+            block_=std::make_shared<int8_t>((int8_t)pJson[pMasqueradingVector[6]].asInt64());
         }
     }
     if(!pMasqueradingVector[7].empty() && pJson.isMember(pMasqueradingVector[7]))
@@ -377,7 +377,7 @@ FriendSettings::FriendSettings(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[5]=true;
         if(!pJson["astrolabe"].isNull())
         {
-            astrolabe_=std::make_shared<bool>(pJson["astrolabe"].asBool());
+            astrolabe_=std::make_shared<int8_t>((int8_t)pJson["astrolabe"].asInt64());
         }
     }
     if(pJson.isMember("block"))
@@ -385,7 +385,7 @@ FriendSettings::FriendSettings(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[6]=true;
         if(!pJson["block"].isNull())
         {
-            block_=std::make_shared<bool>(pJson["block"].asBool());
+            block_=std::make_shared<int8_t>((int8_t)pJson["block"].asInt64());
         }
     }
     if(pJson.isMember("createdAt"))
@@ -494,7 +494,7 @@ void FriendSettings::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[5] = true;
         if(!pJson[pMasqueradingVector[5]].isNull())
         {
-            astrolabe_=std::make_shared<bool>(pJson[pMasqueradingVector[5]].asBool());
+            astrolabe_=std::make_shared<int8_t>((int8_t)pJson[pMasqueradingVector[5]].asInt64());
         }
     }
     if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
@@ -502,7 +502,7 @@ void FriendSettings::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[6] = true;
         if(!pJson[pMasqueradingVector[6]].isNull())
         {
-            block_=std::make_shared<bool>(pJson[pMasqueradingVector[6]].asBool());
+            block_=std::make_shared<int8_t>((int8_t)pJson[pMasqueradingVector[6]].asInt64());
         }
     }
     if(!pMasqueradingVector[7].empty() && pJson.isMember(pMasqueradingVector[7]))
@@ -605,7 +605,7 @@ void FriendSettings::updateByJson(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[5] = true;
         if(!pJson["astrolabe"].isNull())
         {
-            astrolabe_=std::make_shared<bool>(pJson["astrolabe"].asBool());
+            astrolabe_=std::make_shared<int8_t>((int8_t)pJson["astrolabe"].asInt64());
         }
     }
     if(pJson.isMember("block"))
@@ -613,7 +613,7 @@ void FriendSettings::updateByJson(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[6] = true;
         if(!pJson["block"].isNull())
         {
-            block_=std::make_shared<bool>(pJson["block"].asBool());
+            block_=std::make_shared<int8_t>((int8_t)pJson["block"].asInt64());
         }
     }
     if(pJson.isMember("createdAt"))
@@ -780,37 +780,37 @@ void FriendSettings::setTagsToNull() noexcept
     dirtyFlag_[4] = true;
 }
 
-const bool &FriendSettings::getValueOfAstrolabe() const noexcept
+const int8_t &FriendSettings::getValueOfAstrolabe() const noexcept
 {
-    const static bool defaultValue = bool();
+    const static int8_t defaultValue = int8_t();
     if(astrolabe_)
         return *astrolabe_;
     return defaultValue;
 }
-const std::shared_ptr<bool> &FriendSettings::getAstrolabe() const noexcept
+const std::shared_ptr<int8_t> &FriendSettings::getAstrolabe() const noexcept
 {
     return astrolabe_;
 }
-void FriendSettings::setAstrolabe(const bool &pAstrolabe) noexcept
+void FriendSettings::setAstrolabe(const int8_t &pAstrolabe) noexcept
 {
-    astrolabe_ = std::make_shared<bool>(pAstrolabe);
+    astrolabe_ = std::make_shared<int8_t>(pAstrolabe);
     dirtyFlag_[5] = true;
 }
 
-const bool &FriendSettings::getValueOfBlock() const noexcept
+const int8_t &FriendSettings::getValueOfBlock() const noexcept
 {
-    const static bool defaultValue = bool();
+    const static int8_t defaultValue = int8_t();
     if(block_)
         return *block_;
     return defaultValue;
 }
-const std::shared_ptr<bool> &FriendSettings::getBlock() const noexcept
+const std::shared_ptr<int8_t> &FriendSettings::getBlock() const noexcept
 {
     return block_;
 }
-void FriendSettings::setBlock(const bool &pBlock) noexcept
+void FriendSettings::setBlock(const int8_t &pBlock) noexcept
 {
-    block_ = std::make_shared<bool>(pBlock);
+    block_ = std::make_shared<int8_t>(pBlock);
     dirtyFlag_[6] = true;
 }
 
@@ -860,6 +860,7 @@ void FriendSettings::setUpdatedatToNull() noexcept
 
 void FriendSettings::updateId(const uint64_t id)
 {
+    id_ = std::make_shared<int32_t>(static_cast<int32_t>(id));
 }
 
 const std::vector<std::string> &FriendSettings::insertColumns() noexcept
@@ -1735,7 +1736,7 @@ bool FriendSettings::validJsonOfField(size_t index,
                 err="The " + fieldName + " column cannot be null";
                 return false;
             }
-            if(!pJson.isBool())
+            if(!pJson.isInt())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;
@@ -1747,7 +1748,7 @@ bool FriendSettings::validJsonOfField(size_t index,
                 err="The " + fieldName + " column cannot be null";
                 return false;
             }
-            if(!pJson.isBool())
+            if(!pJson.isInt())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;

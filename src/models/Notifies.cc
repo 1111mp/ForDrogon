@@ -28,16 +28,16 @@ const bool Notifies::hasPrimaryKey = true;
 const std::string Notifies::tableName = "notifies";
 
 const std::vector<typename Notifies::MetaData> Notifies::metaData_={
-{"id","std::string","character varying",255,0,1,1},
-{"type","int32_t","integer",4,0,0,0},
-{"sender","int32_t","integer",4,0,0,1},
-{"receiver","int32_t","integer",4,0,0,1},
-{"status","int32_t","integer",4,0,0,0},
-{"time","std::string","character varying",255,0,0,1},
-{"remark","std::string","character varying",255,0,0,0},
-{"ext","std::string","json",0,0,0,0},
-{"createdAt","::trantor::Date","timestamp with time zone",0,0,0,0},
-{"updatedAt","::trantor::Date","timestamp with time zone",0,0,0,0}
+{"id","std::string","varchar(255)",255,0,1,1},
+{"type","int32_t","int(11)",4,0,0,0},
+{"sender","int32_t","int(11)",4,0,0,1},
+{"receiver","int32_t","int(11)",4,0,0,1},
+{"status","int32_t","int(11)",4,0,0,0},
+{"time","std::string","varchar(255)",255,0,0,1},
+{"remark","std::string","varchar(255)",255,0,0,0},
+{"ext","std::string","longtext",0,0,0,0},
+{"createdAt","::trantor::Date","datetime",0,0,0,0},
+{"updatedAt","::trantor::Date","datetime",0,0,0,0}
 };
 const std::string &Notifies::getColumnName(size_t index) noexcept(false)
 {

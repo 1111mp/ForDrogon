@@ -30,18 +30,18 @@ const bool Electrons::hasPrimaryKey = true;
 const std::string Electrons::tableName = "electrons";
 
 const std::vector<typename Electrons::MetaData> Electrons::metaData_={
-{"id","int32_t","integer",4,1,1,1},
-{"platform","std::string","character varying",255,0,0,0},
-{"version","std::string","character varying",255,0,0,1},
-{"archs","std::string","character varying",255,0,0,1},
-{"url","std::string","character varying",255,0,0,1},
-{"force_update","bool","boolean",1,0,0,0},
-{"type","std::string","character varying",255,0,0,1},
-{"actived","bool","boolean",1,0,0,1},
-{"remark","std::string","character varying",255,0,0,0},
-{"ext","std::string","character varying",255,0,0,0},
-{"createdAt","::trantor::Date","timestamp with time zone",0,0,0,0},
-{"updatedAt","::trantor::Date","timestamp with time zone",0,0,0,0}
+{"id","int32_t","int(11)",4,1,1,1},
+{"platform","std::string","varchar(255)",255,0,0,0},
+{"version","std::string","varchar(255)",255,0,0,1},
+{"archs","std::string","varchar(255)",255,0,0,1},
+{"url","std::string","varchar(255)",255,0,0,1},
+{"force_update","int8_t","tinyint(1)",1,0,0,0},
+{"type","std::string","varchar(255)",255,0,0,1},
+{"actived","int8_t","tinyint(1)",1,0,0,1},
+{"remark","std::string","varchar(255)",255,0,0,0},
+{"ext","std::string","varchar(255)",255,0,0,0},
+{"createdAt","::trantor::Date","datetime",0,0,0,0},
+{"updatedAt","::trantor::Date","datetime",0,0,0,0}
 };
 const std::string &Electrons::getColumnName(size_t index) noexcept(false)
 {
@@ -74,7 +74,7 @@ Electrons::Electrons(const Row &r, const ssize_t indexOffset) noexcept
         }
         if(!r["force_update"].isNull())
         {
-            forceUpdate_=std::make_shared<bool>(r["force_update"].as<bool>());
+            forceUpdate_=std::make_shared<int8_t>(r["force_update"].as<int8_t>());
         }
         if(!r["type"].isNull())
         {
@@ -82,7 +82,7 @@ Electrons::Electrons(const Row &r, const ssize_t indexOffset) noexcept
         }
         if(!r["actived"].isNull())
         {
-            actived_=std::make_shared<bool>(r["actived"].as<bool>());
+            actived_=std::make_shared<int8_t>(r["actived"].as<int8_t>());
         }
         if(!r["remark"].isNull())
         {
@@ -174,7 +174,7 @@ Electrons::Electrons(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 5;
         if(!r[index].isNull())
         {
-            forceUpdate_=std::make_shared<bool>(r[index].as<bool>());
+            forceUpdate_=std::make_shared<int8_t>(r[index].as<int8_t>());
         }
         index = offset + 6;
         if(!r[index].isNull())
@@ -184,7 +184,7 @@ Electrons::Electrons(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 7;
         if(!r[index].isNull())
         {
-            actived_=std::make_shared<bool>(r[index].as<bool>());
+            actived_=std::make_shared<int8_t>(r[index].as<int8_t>());
         }
         index = offset + 8;
         if(!r[index].isNull())
@@ -298,7 +298,7 @@ Electrons::Electrons(const Json::Value &pJson, const std::vector<std::string> &p
         dirtyFlag_[5] = true;
         if(!pJson[pMasqueradingVector[5]].isNull())
         {
-            forceUpdate_=std::make_shared<bool>(pJson[pMasqueradingVector[5]].asBool());
+            forceUpdate_=std::make_shared<int8_t>((int8_t)pJson[pMasqueradingVector[5]].asInt64());
         }
     }
     if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
@@ -314,7 +314,7 @@ Electrons::Electrons(const Json::Value &pJson, const std::vector<std::string> &p
         dirtyFlag_[7] = true;
         if(!pJson[pMasqueradingVector[7]].isNull())
         {
-            actived_=std::make_shared<bool>(pJson[pMasqueradingVector[7]].asBool());
+            actived_=std::make_shared<int8_t>((int8_t)pJson[pMasqueradingVector[7]].asInt64());
         }
     }
     if(!pMasqueradingVector[8].empty() && pJson.isMember(pMasqueradingVector[8]))
@@ -434,7 +434,7 @@ Electrons::Electrons(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[5]=true;
         if(!pJson["force_update"].isNull())
         {
-            forceUpdate_=std::make_shared<bool>(pJson["force_update"].asBool());
+            forceUpdate_=std::make_shared<int8_t>((int8_t)pJson["force_update"].asInt64());
         }
     }
     if(pJson.isMember("type"))
@@ -450,7 +450,7 @@ Electrons::Electrons(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[7]=true;
         if(!pJson["actived"].isNull())
         {
-            actived_=std::make_shared<bool>(pJson["actived"].asBool());
+            actived_=std::make_shared<int8_t>((int8_t)pJson["actived"].asInt64());
         }
     }
     if(pJson.isMember("remark"))
@@ -575,7 +575,7 @@ void Electrons::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[5] = true;
         if(!pJson[pMasqueradingVector[5]].isNull())
         {
-            forceUpdate_=std::make_shared<bool>(pJson[pMasqueradingVector[5]].asBool());
+            forceUpdate_=std::make_shared<int8_t>((int8_t)pJson[pMasqueradingVector[5]].asInt64());
         }
     }
     if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
@@ -591,7 +591,7 @@ void Electrons::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[7] = true;
         if(!pJson[pMasqueradingVector[7]].isNull())
         {
-            actived_=std::make_shared<bool>(pJson[pMasqueradingVector[7]].asBool());
+            actived_=std::make_shared<int8_t>((int8_t)pJson[pMasqueradingVector[7]].asInt64());
         }
     }
     if(!pMasqueradingVector[8].empty() && pJson.isMember(pMasqueradingVector[8]))
@@ -710,7 +710,7 @@ void Electrons::updateByJson(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[5] = true;
         if(!pJson["force_update"].isNull())
         {
-            forceUpdate_=std::make_shared<bool>(pJson["force_update"].asBool());
+            forceUpdate_=std::make_shared<int8_t>((int8_t)pJson["force_update"].asInt64());
         }
     }
     if(pJson.isMember("type"))
@@ -726,7 +726,7 @@ void Electrons::updateByJson(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[7] = true;
         if(!pJson["actived"].isNull())
         {
-            actived_=std::make_shared<bool>(pJson["actived"].asBool());
+            actived_=std::make_shared<int8_t>((int8_t)pJson["actived"].asInt64());
         }
     }
     if(pJson.isMember("remark"))
@@ -914,20 +914,20 @@ void Electrons::setUrl(std::string &&pUrl) noexcept
     dirtyFlag_[4] = true;
 }
 
-const bool &Electrons::getValueOfForceUpdate() const noexcept
+const int8_t &Electrons::getValueOfForceUpdate() const noexcept
 {
-    const static bool defaultValue = bool();
+    const static int8_t defaultValue = int8_t();
     if(forceUpdate_)
         return *forceUpdate_;
     return defaultValue;
 }
-const std::shared_ptr<bool> &Electrons::getForceUpdate() const noexcept
+const std::shared_ptr<int8_t> &Electrons::getForceUpdate() const noexcept
 {
     return forceUpdate_;
 }
-void Electrons::setForceUpdate(const bool &pForceUpdate) noexcept
+void Electrons::setForceUpdate(const int8_t &pForceUpdate) noexcept
 {
-    forceUpdate_ = std::make_shared<bool>(pForceUpdate);
+    forceUpdate_ = std::make_shared<int8_t>(pForceUpdate);
     dirtyFlag_[5] = true;
 }
 void Electrons::setForceUpdateToNull() noexcept
@@ -958,20 +958,20 @@ void Electrons::setType(std::string &&pType) noexcept
     dirtyFlag_[6] = true;
 }
 
-const bool &Electrons::getValueOfActived() const noexcept
+const int8_t &Electrons::getValueOfActived() const noexcept
 {
-    const static bool defaultValue = bool();
+    const static int8_t defaultValue = int8_t();
     if(actived_)
         return *actived_;
     return defaultValue;
 }
-const std::shared_ptr<bool> &Electrons::getActived() const noexcept
+const std::shared_ptr<int8_t> &Electrons::getActived() const noexcept
 {
     return actived_;
 }
-void Electrons::setActived(const bool &pActived) noexcept
+void Electrons::setActived(const int8_t &pActived) noexcept
 {
-    actived_ = std::make_shared<bool>(pActived);
+    actived_ = std::make_shared<int8_t>(pActived);
     dirtyFlag_[7] = true;
 }
 
@@ -1075,6 +1075,7 @@ void Electrons::setUpdatedatToNull() noexcept
 
 void Electrons::updateId(const uint64_t id)
 {
+    id_ = std::make_shared<int32_t>(static_cast<int32_t>(id));
 }
 
 const std::vector<std::string> &Electrons::insertColumns() noexcept
@@ -2219,7 +2220,7 @@ bool Electrons::validJsonOfField(size_t index,
             {
                 return true;
             }
-            if(!pJson.isBool())
+            if(!pJson.isInt())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;
@@ -2252,7 +2253,7 @@ bool Electrons::validJsonOfField(size_t index,
                 err="The " + fieldName + " column cannot be null";
                 return false;
             }
-            if(!pJson.isBool())
+            if(!pJson.isInt())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;

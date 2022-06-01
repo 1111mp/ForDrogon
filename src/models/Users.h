@@ -47,8 +47,8 @@ class Users
         static const std::string _pwd;
         static const std::string _avatar;
         static const std::string _email;
-        static const std::string _registime;
-        static const std::string _updatetime;
+        static const std::string _regisTime;
+        static const std::string _updateTime;
     };
 
     const static int primaryKeyNumber;
@@ -147,21 +147,21 @@ class Users
     void setEmail(std::string &&pEmail) noexcept;
     void setEmailToNull() noexcept;
 
-    /**  For column registime  */
-    ///Get the value of the column registime, returns the default value if the column is null
+    /**  For column regisTime  */
+    ///Get the value of the column regisTime, returns the default value if the column is null
     const ::trantor::Date &getValueOfRegistime() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
     const std::shared_ptr<::trantor::Date> &getRegistime() const noexcept;
-    ///Set the value of the column registime
+    ///Set the value of the column regisTime
     void setRegistime(const ::trantor::Date &pRegistime) noexcept;
     void setRegistimeToNull() noexcept;
 
-    /**  For column updatetime  */
-    ///Get the value of the column updatetime, returns the default value if the column is null
+    /**  For column updateTime  */
+    ///Get the value of the column updateTime, returns the default value if the column is null
     const ::trantor::Date &getValueOfUpdatetime() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
     const std::shared_ptr<::trantor::Date> &getUpdatetime() const noexcept;
-    ///Set the value of the column updatetime
+    ///Set the value of the column updateTime
     void setUpdatetime(const ::trantor::Date &pUpdatetime) noexcept;
     void setUpdatetimeToNull() noexcept;
 
@@ -205,13 +205,13 @@ class Users
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
-        static const std::string sql="select * from " + tableName + " where id = $1";
+        static const std::string sql="select * from " + tableName + " where id = ?";
         return sql;
     }
 
     static const std::string &sqlForDeletingByPrimaryKey()
     {
-        static const std::string sql="delete from " + tableName + " where id = $1";
+        static const std::string sql="delete from " + tableName + " where id = ?";
         return sql;
     }
     std::string sqlForInserting(bool &needSelection) const
@@ -243,12 +243,12 @@ class Users
         }
         if(dirtyFlag_[5])
         {
-            sql += "registime,";
+            sql += "regisTime,";
             ++parametersCount;
         }
         if(dirtyFlag_[6])
         {
-            sql += "updatetime,";
+            sql += "updateTime,";
             ++parametersCount;
         }
         needSelection=true;
@@ -260,52 +260,42 @@ class Users
         else
             sql += ") values (";
 
-        int placeholder=1;
-        char placeholderStr[64];
-        size_t n=0;
         sql +="default,";
         if(dirtyFlag_[1])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[2])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[3])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[4])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[5])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(dirtyFlag_[6])
         {
-            n = sprintf(placeholderStr,"$%d,",placeholder++);
-            sql.append(placeholderStr, n);
+            sql.append("?,");
+
         }
         if(parametersCount > 0)
         {
             sql.resize(sql.length() - 1);
         }
-        if(needSelection)
-        {
-            sql.append(") returning *");
-        }
-        else
-        {
-            sql.append(1, ')');
-        }
+        sql.append(1, ')');
         LOG_TRACE << sql;
         return sql;
     }

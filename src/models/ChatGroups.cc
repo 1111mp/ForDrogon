@@ -26,14 +26,14 @@ const bool ChatGroups::hasPrimaryKey = true;
 const std::string ChatGroups::tableName = "chat_groups";
 
 const std::vector<typename ChatGroups::MetaData> ChatGroups::metaData_={
-{"id","int32_t","integer",4,1,1,1},
-{"name","std::string","character varying",255,0,0,0},
-{"avatar","std::string","character varying",255,0,0,0},
-{"type","int32_t","integer",4,0,0,0},
-{"max","int32_t","integer",4,0,0,0},
-{"group_creator","int32_t","integer",4,0,0,1},
-{"createdAt","::trantor::Date","timestamp with time zone",0,0,0,0},
-{"updatedAt","::trantor::Date","timestamp with time zone",0,0,0,0}
+{"id","int32_t","int(11)",4,1,1,1},
+{"name","std::string","varchar(255)",255,0,0,0},
+{"avatar","std::string","varchar(255)",255,0,0,0},
+{"type","int32_t","int(11)",4,0,0,0},
+{"max","int32_t","int(11)",4,0,0,0},
+{"group_creator","int32_t","int(11)",4,0,0,1},
+{"createdAt","::trantor::Date","datetime",0,0,0,0},
+{"updatedAt","::trantor::Date","datetime",0,0,0,0}
 };
 const std::string &ChatGroups::getColumnName(size_t index) noexcept(false)
 {
@@ -810,6 +810,7 @@ void ChatGroups::setUpdatedatToNull() noexcept
 
 void ChatGroups::updateId(const uint64_t id)
 {
+    id_ = std::make_shared<int32_t>(static_cast<int32_t>(id));
 }
 
 const std::vector<std::string> &ChatGroups::insertColumns() noexcept

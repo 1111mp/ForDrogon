@@ -25,13 +25,13 @@ const bool Friends::hasPrimaryKey = true;
 const std::string Friends::tableName = "friends";
 
 const std::vector<typename Friends::MetaData> Friends::metaData_={
-{"id","int32_t","integer",4,1,1,1},
-{"user_id","int32_t","integer",4,0,0,0},
-{"friend_id","int32_t","integer",4,0,0,0},
-{"user_group","std::string","character varying",255,0,0,0},
-{"friend_group","std::string","character varying",255,0,0,0},
-{"createdAt","::trantor::Date","timestamp with time zone",0,0,0,0},
-{"updatedAt","::trantor::Date","timestamp with time zone",0,0,0,0}
+{"id","int32_t","int(11)",4,1,1,1},
+{"user_id","int32_t","int(11)",4,0,0,0},
+{"friend_id","int32_t","int(11)",4,0,0,0},
+{"user_group","std::string","varchar(255)",255,0,0,0},
+{"friend_group","std::string","varchar(255)",255,0,0,0},
+{"createdAt","::trantor::Date","datetime",0,0,0,0},
+{"updatedAt","::trantor::Date","datetime",0,0,0,0}
 };
 const std::string &Friends::getColumnName(size_t index) noexcept(false)
 {
@@ -750,6 +750,7 @@ void Friends::setUpdatedatToNull() noexcept
 
 void Friends::updateId(const uint64_t id)
 {
+    id_ = std::make_shared<int32_t>(static_cast<int32_t>(id));
 }
 
 const std::vector<std::string> &Friends::insertColumns() noexcept

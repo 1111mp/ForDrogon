@@ -67,6 +67,7 @@ namespace api::v1::filters
 			}
 
 			auto member = std::any_cast<bool>(jwtAttributes["member"]);
+			auto userid = std::any_cast<int64_t>(jwtAttributes["userid"]);
 			if (!member)
 			{
 				// The validity period is automatically extended by one hour.

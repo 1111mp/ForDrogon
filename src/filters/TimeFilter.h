@@ -18,7 +18,7 @@ namespace api::v1::filters
   class TimeFilter : public HttpFilter<TimeFilter>
   {
   public:
-    TimeFilter() {}
+    TimeFilter() = default;
     virtual void doFilter(const HttpRequestPtr &req,
                           FilterCallback &&fcb,
                           FilterChainCallback &&fccb) override;

@@ -23,11 +23,11 @@ const bool GroupMembers::hasPrimaryKey = true;
 const std::string GroupMembers::tableName = "group_members";
 
 const std::vector<typename GroupMembers::MetaData> GroupMembers::metaData_={
-{"id","int32_t","integer",4,1,1,1},
-{"group_id","int32_t","integer",4,0,0,0},
-{"user_id","int32_t","integer",4,0,0,0},
-{"createdAt","::trantor::Date","timestamp with time zone",0,0,0,0},
-{"updatedAt","::trantor::Date","timestamp with time zone",0,0,0,0}
+{"id","int32_t","int(11)",4,1,1,1},
+{"group_id","int32_t","int(11)",4,0,0,0},
+{"user_id","int32_t","int(11)",4,0,0,0},
+{"createdAt","::trantor::Date","datetime",0,0,0,0},
+{"updatedAt","::trantor::Date","datetime",0,0,0,0}
 };
 const std::string &GroupMembers::getColumnName(size_t index) noexcept(false)
 {
@@ -610,6 +610,7 @@ void GroupMembers::setUpdatedatToNull() noexcept
 
 void GroupMembers::updateId(const uint64_t id)
 {
+    id_ = std::make_shared<int32_t>(static_cast<int32_t>(id));
 }
 
 const std::vector<std::string> &GroupMembers::insertColumns() noexcept
