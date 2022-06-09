@@ -2,10 +2,10 @@
 
 #include <sodium.h>
 
-namespace Utils::Bcrypt
+namespace Utils
 {
 
-  std::string genSalt(uint32_t rounds)
+  std::string Bcrypt::genSalt(uint32_t rounds)
   {
     unsigned char seed[16];
     randombytes_buf(seed, sizeof(seed));
@@ -16,7 +16,7 @@ namespace Utils::Bcrypt
     return salt;
   }
 
-  std::string genHash(const std::string &key, uint32_t rounds)
+  std::string Bcrypt::genHash(const std::string &key, uint32_t rounds)
   {
     std::string salt = genSalt(rounds);
 
@@ -27,7 +27,7 @@ namespace Utils::Bcrypt
     return bcrypted;
   }
 
-  bool compare(const std::string &key, const std::string &hash)
+  bool Bcrypt::compare(const std::string &key, const std::string &hash)
   {
     char bcrypted[_PASSWORD_LEN];
     bcrypt(key.c_str(), key.size(), hash.c_str(), bcrypted);
@@ -35,7 +35,7 @@ namespace Utils::Bcrypt
     return hash == bcrypted;
   }
 
-  uint32_t getRounds(const std::string &hash)
+  uint32_t Bcrypt::getRounds(const std::string &hash)
   {
     uint32_t rounds = bcrypt_get_rounds(hash.c_str());
 

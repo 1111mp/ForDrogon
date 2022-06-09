@@ -23,7 +23,7 @@ namespace api::v1::filters
 		{
 			Json::Value resultJson;
 			resultJson["code"] = k401Unauthorized;
-			resultJson["msg"] = "Authentication Error";
+			resultJson["msg"] = "Authentication Error.";
 
 			auto res = HttpResponse::newHttpJsonResponse(resultJson);
 			res->setStatusCode(k401Unauthorized);
@@ -67,7 +67,6 @@ namespace api::v1::filters
 			}
 
 			auto member = std::any_cast<bool>(jwtAttributes["member"]);
-			auto userid = std::any_cast<int64_t>(jwtAttributes["userid"]);
 			if (!member)
 			{
 				// The validity period is automatically extended by one hour.
