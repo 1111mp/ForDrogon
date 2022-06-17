@@ -36,6 +36,7 @@ namespace drogon_model
 {
 namespace database_test
 {
+class GroupMembers;
 
 class ChatGroups
 {
@@ -47,9 +48,9 @@ class ChatGroups
         static const std::string _avatar;
         static const std::string _type;
         static const std::string _max;
-        static const std::string _group_creator;
         static const std::string _createdAt;
         static const std::string _updatedAt;
+        static const std::string _creator;
     };
 
     const static int primaryKeyNumber;
@@ -147,14 +148,6 @@ class ChatGroups
     void setMax(const int32_t &pMax) noexcept;
     void setMaxToNull() noexcept;
 
-    /**  For column group_creator  */
-    ///Get the value of the column group_creator, returns the default value if the column is null
-    const int32_t &getValueOfGroupCreator() const noexcept;
-    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getGroupCreator() const noexcept;
-    ///Set the value of the column group_creator
-    void setGroupCreator(const int32_t &pGroupCreator) noexcept;
-
     /**  For column createdAt  */
     ///Get the value of the column createdAt, returns the default value if the column is null
     const ::trantor::Date &getValueOfCreatedat() const noexcept;
@@ -173,6 +166,14 @@ class ChatGroups
     void setUpdatedat(const ::trantor::Date &pUpdatedat) noexcept;
     void setUpdatedatToNull() noexcept;
 
+    /**  For column creator  */
+    ///Get the value of the column creator, returns the default value if the column is null
+    const int32_t &getValueOfCreator() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int32_t> &getCreator() const noexcept;
+    ///Set the value of the column creator
+    void setCreator(const int32_t &pCreator) noexcept;
+
 
     static size_t getColumnNumber() noexcept {  return 8;  }
     static const std::string &getColumnName(size_t index) noexcept(false);
@@ -180,6 +181,9 @@ class ChatGroups
     Json::Value toJson() const;
     Json::Value toMasqueradedJson(const std::vector<std::string> &pMasqueradingVector) const;
     /// Relationship interfaces
+    void getMembers(const drogon::orm::DbClientPtr &clientPtr,
+                    const std::function<void(std::vector<GroupMembers>)> &rcb,
+                    const drogon::orm::ExceptionCallback &ecb) const;
   private:
     friend drogon::orm::Mapper<ChatGroups>;
 #ifdef __cpp_impl_coroutine
@@ -196,9 +200,9 @@ class ChatGroups
     std::shared_ptr<std::string> avatar_;
     std::shared_ptr<int32_t> type_;
     std::shared_ptr<int32_t> max_;
-    std::shared_ptr<int32_t> groupCreator_;
     std::shared_ptr<::trantor::Date> createdat_;
     std::shared_ptr<::trantor::Date> updatedat_;
+    std::shared_ptr<int32_t> creator_;
     struct MetaData
     {
         const std::string colName_;
@@ -230,17 +234,15 @@ class ChatGroups
         needSelection = false;
             sql += "id,";
             ++parametersCount;
-        sql += "name,";
-        ++parametersCount;
-        if(!dirtyFlag_[1])
+        if(dirtyFlag_[1])
         {
-            needSelection=true;
+            sql += "name,";
+            ++parametersCount;
         }
-        sql += "avatar,";
-        ++parametersCount;
-        if(!dirtyFlag_[2])
+        if(dirtyFlag_[2])
         {
-            needSelection=true;
+            sql += "avatar,";
+            ++parametersCount;
         }
         if(dirtyFlag_[3])
         {
@@ -254,17 +256,17 @@ class ChatGroups
         }
         if(dirtyFlag_[5])
         {
-            sql += "group_creator,";
+            sql += "createdAt,";
             ++parametersCount;
         }
         if(dirtyFlag_[6])
         {
-            sql += "createdAt,";
+            sql += "updatedAt,";
             ++parametersCount;
         }
         if(dirtyFlag_[7])
         {
-            sql += "updatedAt,";
+            sql += "creator,";
             ++parametersCount;
         }
         needSelection=true;
@@ -282,18 +284,10 @@ class ChatGroups
             sql.append("?,");
 
         }
-        else
-        {
-            sql +="default,";
-        }
         if(dirtyFlag_[2])
         {
             sql.append("?,");
 
-        }
-        else
-        {
-            sql +="default,";
         }
         if(dirtyFlag_[3])
         {

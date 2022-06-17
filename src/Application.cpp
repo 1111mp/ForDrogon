@@ -5,6 +5,7 @@ int main()
 {
   if (sodium_init() == -1)
     return 1;
+
   // Load config file
   drogon::app().loadConfigFile("../config.json").run();
 

@@ -36,6 +36,8 @@ namespace drogon_model
 {
 namespace database_test
 {
+class ChatGroups;
+class Users;
 
 class GroupMembers
 {
@@ -149,6 +151,12 @@ class GroupMembers
     Json::Value toJson() const;
     Json::Value toMasqueradedJson(const std::vector<std::string> &pMasqueradingVector) const;
     /// Relationship interfaces
+    void getUser(const drogon::orm::DbClientPtr &clientPtr,
+                 const std::function<void(Users)> &rcb,
+                 const drogon::orm::ExceptionCallback &ecb) const;
+    void getGroup(const drogon::orm::DbClientPtr &clientPtr,
+                  const std::function<void(ChatGroups)> &rcb,
+                  const drogon::orm::ExceptionCallback &ecb) const;
   private:
     friend drogon::orm::Mapper<GroupMembers>;
 #ifdef __cpp_impl_coroutine

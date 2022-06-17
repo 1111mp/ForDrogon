@@ -6,6 +6,7 @@
  */
 
 #include "ChatGroups.h"
+#include "GroupMembers.h"
 #include <drogon/utils/Utilities.h>
 #include <string>
 
@@ -18,9 +19,9 @@ const std::string ChatGroups::Cols::_name = "name";
 const std::string ChatGroups::Cols::_avatar = "avatar";
 const std::string ChatGroups::Cols::_type = "type";
 const std::string ChatGroups::Cols::_max = "max";
-const std::string ChatGroups::Cols::_group_creator = "group_creator";
 const std::string ChatGroups::Cols::_createdAt = "createdAt";
 const std::string ChatGroups::Cols::_updatedAt = "updatedAt";
+const std::string ChatGroups::Cols::_creator = "creator";
 const std::string ChatGroups::primaryKeyName = "id";
 const bool ChatGroups::hasPrimaryKey = true;
 const std::string ChatGroups::tableName = "chat_groups";
@@ -31,9 +32,9 @@ const std::vector<typename ChatGroups::MetaData> ChatGroups::metaData_={
 {"avatar","std::string","varchar(255)",255,0,0,0},
 {"type","int32_t","int(11)",4,0,0,0},
 {"max","int32_t","int(11)",4,0,0,0},
-{"group_creator","int32_t","int(11)",4,0,0,1},
 {"createdAt","::trantor::Date","datetime",0,0,0,0},
-{"updatedAt","::trantor::Date","datetime",0,0,0,0}
+{"updatedAt","::trantor::Date","datetime",0,0,0,0},
+{"creator","int32_t","int(11)",4,0,0,1}
 };
 const std::string &ChatGroups::getColumnName(size_t index) noexcept(false)
 {
@@ -63,10 +64,6 @@ ChatGroups::ChatGroups(const Row &r, const ssize_t indexOffset) noexcept
         if(!r["max"].isNull())
         {
             max_=std::make_shared<int32_t>(r["max"].as<int32_t>());
-        }
-        if(!r["group_creator"].isNull())
-        {
-            groupCreator_=std::make_shared<int32_t>(r["group_creator"].as<int32_t>());
         }
         if(!r["createdAt"].isNull())
         {
@@ -112,6 +109,10 @@ ChatGroups::ChatGroups(const Row &r, const ssize_t indexOffset) noexcept
                 updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
+        if(!r["creator"].isNull())
+        {
+            creator_=std::make_shared<int32_t>(r["creator"].as<int32_t>());
+        }
     }
     else
     {
@@ -150,7 +151,25 @@ ChatGroups::ChatGroups(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 5;
         if(!r[index].isNull())
         {
-            groupCreator_=std::make_shared<int32_t>(r[index].as<int32_t>());
+            auto timeStr = r[index].as<std::string>();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
         index = offset + 6;
         if(!r[index].isNull())
@@ -172,31 +191,13 @@ ChatGroups::ChatGroups(const Row &r, const ssize_t indexOffset) noexcept
                     }
                     decimalNum = (size_t)atol(decimals.c_str());
                 }
-                createdat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+                updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
         index = offset + 7;
         if(!r[index].isNull())
         {
-            auto timeStr = r[index].as<std::string>();
-            struct tm stm;
-            memset(&stm,0,sizeof(stm));
-            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
-            time_t t = mktime(&stm);
-            size_t decimalNum = 0;
-            if(p)
-            {
-                if(*p=='.')
-                {
-                    std::string decimals(p+1,&timeStr[timeStr.length()]);
-                    while(decimals.length()<6)
-                    {
-                        decimals += "0";
-                    }
-                    decimalNum = (size_t)atol(decimals.c_str());
-                }
-                updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
-            }
+            creator_=std::make_shared<int32_t>(r[index].as<int32_t>());
         }
     }
 
@@ -254,7 +255,25 @@ ChatGroups::ChatGroups(const Json::Value &pJson, const std::vector<std::string> 
         dirtyFlag_[5] = true;
         if(!pJson[pMasqueradingVector[5]].isNull())
         {
-            groupCreator_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[5]].asInt64());
+            auto timeStr = pJson[pMasqueradingVector[5]].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
     }
     if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
@@ -279,7 +298,7 @@ ChatGroups::ChatGroups(const Json::Value &pJson, const std::vector<std::string> 
                     }
                     decimalNum = (size_t)atol(decimals.c_str());
                 }
-                createdat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+                updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
     }
@@ -288,25 +307,7 @@ ChatGroups::ChatGroups(const Json::Value &pJson, const std::vector<std::string> 
         dirtyFlag_[7] = true;
         if(!pJson[pMasqueradingVector[7]].isNull())
         {
-            auto timeStr = pJson[pMasqueradingVector[7]].asString();
-            struct tm stm;
-            memset(&stm,0,sizeof(stm));
-            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
-            time_t t = mktime(&stm);
-            size_t decimalNum = 0;
-            if(p)
-            {
-                if(*p=='.')
-                {
-                    std::string decimals(p+1,&timeStr[timeStr.length()]);
-                    while(decimals.length()<6)
-                    {
-                        decimals += "0";
-                    }
-                    decimalNum = (size_t)atol(decimals.c_str());
-                }
-                updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
-            }
+            creator_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[7]].asInt64());
         }
     }
 }
@@ -353,17 +354,9 @@ ChatGroups::ChatGroups(const Json::Value &pJson) noexcept(false)
             max_=std::make_shared<int32_t>((int32_t)pJson["max"].asInt64());
         }
     }
-    if(pJson.isMember("group_creator"))
-    {
-        dirtyFlag_[5]=true;
-        if(!pJson["group_creator"].isNull())
-        {
-            groupCreator_=std::make_shared<int32_t>((int32_t)pJson["group_creator"].asInt64());
-        }
-    }
     if(pJson.isMember("createdAt"))
     {
-        dirtyFlag_[6]=true;
+        dirtyFlag_[5]=true;
         if(!pJson["createdAt"].isNull())
         {
             auto timeStr = pJson["createdAt"].asString();
@@ -389,7 +382,7 @@ ChatGroups::ChatGroups(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("updatedAt"))
     {
-        dirtyFlag_[7]=true;
+        dirtyFlag_[6]=true;
         if(!pJson["updatedAt"].isNull())
         {
             auto timeStr = pJson["updatedAt"].asString();
@@ -411,6 +404,14 @@ ChatGroups::ChatGroups(const Json::Value &pJson) noexcept(false)
                 }
                 updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
+        }
+    }
+    if(pJson.isMember("creator"))
+    {
+        dirtyFlag_[7]=true;
+        if(!pJson["creator"].isNull())
+        {
+            creator_=std::make_shared<int32_t>((int32_t)pJson["creator"].asInt64());
         }
     }
 }
@@ -467,7 +468,25 @@ void ChatGroups::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[5] = true;
         if(!pJson[pMasqueradingVector[5]].isNull())
         {
-            groupCreator_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[5]].asInt64());
+            auto timeStr = pJson[pMasqueradingVector[5]].asString();
+            struct tm stm;
+            memset(&stm,0,sizeof(stm));
+            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
+            time_t t = mktime(&stm);
+            size_t decimalNum = 0;
+            if(p)
+            {
+                if(*p=='.')
+                {
+                    std::string decimals(p+1,&timeStr[timeStr.length()]);
+                    while(decimals.length()<6)
+                    {
+                        decimals += "0";
+                    }
+                    decimalNum = (size_t)atol(decimals.c_str());
+                }
+                createdat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+            }
         }
     }
     if(!pMasqueradingVector[6].empty() && pJson.isMember(pMasqueradingVector[6]))
@@ -492,7 +511,7 @@ void ChatGroups::updateByMasqueradedJson(const Json::Value &pJson,
                     }
                     decimalNum = (size_t)atol(decimals.c_str());
                 }
-                createdat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
+                updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
         }
     }
@@ -501,25 +520,7 @@ void ChatGroups::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[7] = true;
         if(!pJson[pMasqueradingVector[7]].isNull())
         {
-            auto timeStr = pJson[pMasqueradingVector[7]].asString();
-            struct tm stm;
-            memset(&stm,0,sizeof(stm));
-            auto p = strptime(timeStr.c_str(),"%Y-%m-%d %H:%M:%S",&stm);
-            time_t t = mktime(&stm);
-            size_t decimalNum = 0;
-            if(p)
-            {
-                if(*p=='.')
-                {
-                    std::string decimals(p+1,&timeStr[timeStr.length()]);
-                    while(decimals.length()<6)
-                    {
-                        decimals += "0";
-                    }
-                    decimalNum = (size_t)atol(decimals.c_str());
-                }
-                updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
-            }
+            creator_=std::make_shared<int32_t>((int32_t)pJson[pMasqueradingVector[7]].asInt64());
         }
     }
 }
@@ -565,17 +566,9 @@ void ChatGroups::updateByJson(const Json::Value &pJson) noexcept(false)
             max_=std::make_shared<int32_t>((int32_t)pJson["max"].asInt64());
         }
     }
-    if(pJson.isMember("group_creator"))
-    {
-        dirtyFlag_[5] = true;
-        if(!pJson["group_creator"].isNull())
-        {
-            groupCreator_=std::make_shared<int32_t>((int32_t)pJson["group_creator"].asInt64());
-        }
-    }
     if(pJson.isMember("createdAt"))
     {
-        dirtyFlag_[6] = true;
+        dirtyFlag_[5] = true;
         if(!pJson["createdAt"].isNull())
         {
             auto timeStr = pJson["createdAt"].asString();
@@ -601,7 +594,7 @@ void ChatGroups::updateByJson(const Json::Value &pJson) noexcept(false)
     }
     if(pJson.isMember("updatedAt"))
     {
-        dirtyFlag_[7] = true;
+        dirtyFlag_[6] = true;
         if(!pJson["updatedAt"].isNull())
         {
             auto timeStr = pJson["updatedAt"].asString();
@@ -623,6 +616,14 @@ void ChatGroups::updateByJson(const Json::Value &pJson) noexcept(false)
                 }
                 updatedat_=std::make_shared<::trantor::Date>(t*1000000+decimalNum);
             }
+        }
+    }
+    if(pJson.isMember("creator"))
+    {
+        dirtyFlag_[7] = true;
+        if(!pJson["creator"].isNull())
+        {
+            creator_=std::make_shared<int32_t>((int32_t)pJson["creator"].asInt64());
         }
     }
 }
@@ -747,23 +748,6 @@ void ChatGroups::setMaxToNull() noexcept
     dirtyFlag_[4] = true;
 }
 
-const int32_t &ChatGroups::getValueOfGroupCreator() const noexcept
-{
-    const static int32_t defaultValue = int32_t();
-    if(groupCreator_)
-        return *groupCreator_;
-    return defaultValue;
-}
-const std::shared_ptr<int32_t> &ChatGroups::getGroupCreator() const noexcept
-{
-    return groupCreator_;
-}
-void ChatGroups::setGroupCreator(const int32_t &pGroupCreator) noexcept
-{
-    groupCreator_ = std::make_shared<int32_t>(pGroupCreator);
-    dirtyFlag_[5] = true;
-}
-
 const ::trantor::Date &ChatGroups::getValueOfCreatedat() const noexcept
 {
     const static ::trantor::Date defaultValue = ::trantor::Date();
@@ -778,12 +762,12 @@ const std::shared_ptr<::trantor::Date> &ChatGroups::getCreatedat() const noexcep
 void ChatGroups::setCreatedat(const ::trantor::Date &pCreatedat) noexcept
 {
     createdat_ = std::make_shared<::trantor::Date>(pCreatedat);
-    dirtyFlag_[6] = true;
+    dirtyFlag_[5] = true;
 }
 void ChatGroups::setCreatedatToNull() noexcept
 {
     createdat_.reset();
-    dirtyFlag_[6] = true;
+    dirtyFlag_[5] = true;
 }
 
 const ::trantor::Date &ChatGroups::getValueOfUpdatedat() const noexcept
@@ -800,11 +784,28 @@ const std::shared_ptr<::trantor::Date> &ChatGroups::getUpdatedat() const noexcep
 void ChatGroups::setUpdatedat(const ::trantor::Date &pUpdatedat) noexcept
 {
     updatedat_ = std::make_shared<::trantor::Date>(pUpdatedat);
-    dirtyFlag_[7] = true;
+    dirtyFlag_[6] = true;
 }
 void ChatGroups::setUpdatedatToNull() noexcept
 {
     updatedat_.reset();
+    dirtyFlag_[6] = true;
+}
+
+const int32_t &ChatGroups::getValueOfCreator() const noexcept
+{
+    const static int32_t defaultValue = int32_t();
+    if(creator_)
+        return *creator_;
+    return defaultValue;
+}
+const std::shared_ptr<int32_t> &ChatGroups::getCreator() const noexcept
+{
+    return creator_;
+}
+void ChatGroups::setCreator(const int32_t &pCreator) noexcept
+{
+    creator_ = std::make_shared<int32_t>(pCreator);
     dirtyFlag_[7] = true;
 }
 
@@ -820,9 +821,9 @@ const std::vector<std::string> &ChatGroups::insertColumns() noexcept
         "avatar",
         "type",
         "max",
-        "group_creator",
         "createdAt",
-        "updatedAt"
+        "updatedAt",
+        "creator"
     };
     return inCols;
 }
@@ -875,17 +876,6 @@ void ChatGroups::outputArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[5])
     {
-        if(getGroupCreator())
-        {
-            binder << getValueOfGroupCreator();
-        }
-        else
-        {
-            binder << nullptr;
-        }
-    }
-    if(dirtyFlag_[6])
-    {
         if(getCreatedat())
         {
             binder << getValueOfCreatedat();
@@ -895,11 +885,22 @@ void ChatGroups::outputArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[7])
+    if(dirtyFlag_[6])
     {
         if(getUpdatedat())
         {
             binder << getValueOfUpdatedat();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[7])
+    {
+        if(getCreator())
+        {
+            binder << getValueOfCreator();
         }
         else
         {
@@ -990,17 +991,6 @@ void ChatGroups::updateArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[5])
     {
-        if(getGroupCreator())
-        {
-            binder << getValueOfGroupCreator();
-        }
-        else
-        {
-            binder << nullptr;
-        }
-    }
-    if(dirtyFlag_[6])
-    {
         if(getCreatedat())
         {
             binder << getValueOfCreatedat();
@@ -1010,11 +1000,22 @@ void ChatGroups::updateArgs(drogon::orm::internal::SqlBinder &binder) const
             binder << nullptr;
         }
     }
-    if(dirtyFlag_[7])
+    if(dirtyFlag_[6])
     {
         if(getUpdatedat())
         {
             binder << getValueOfUpdatedat();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[7])
+    {
+        if(getCreator())
+        {
+            binder << getValueOfCreator();
         }
         else
         {
@@ -1065,14 +1066,6 @@ Json::Value ChatGroups::toJson() const
     {
         ret["max"]=Json::Value();
     }
-    if(getGroupCreator())
-    {
-        ret["group_creator"]=getValueOfGroupCreator();
-    }
-    else
-    {
-        ret["group_creator"]=Json::Value();
-    }
     if(getCreatedat())
     {
         ret["createdAt"]=getCreatedat()->toDbStringLocal();
@@ -1088,6 +1081,14 @@ Json::Value ChatGroups::toJson() const
     else
     {
         ret["updatedAt"]=Json::Value();
+    }
+    if(getCreator())
+    {
+        ret["creator"]=getValueOfCreator();
+    }
+    else
+    {
+        ret["creator"]=Json::Value();
     }
     return ret;
 }
@@ -1155,9 +1156,9 @@ Json::Value ChatGroups::toMasqueradedJson(
         }
         if(!pMasqueradingVector[5].empty())
         {
-            if(getGroupCreator())
+            if(getCreatedat())
             {
-                ret[pMasqueradingVector[5]]=getValueOfGroupCreator();
+                ret[pMasqueradingVector[5]]=getCreatedat()->toDbStringLocal();
             }
             else
             {
@@ -1166,9 +1167,9 @@ Json::Value ChatGroups::toMasqueradedJson(
         }
         if(!pMasqueradingVector[6].empty())
         {
-            if(getCreatedat())
+            if(getUpdatedat())
             {
-                ret[pMasqueradingVector[6]]=getCreatedat()->toDbStringLocal();
+                ret[pMasqueradingVector[6]]=getUpdatedat()->toDbStringLocal();
             }
             else
             {
@@ -1177,9 +1178,9 @@ Json::Value ChatGroups::toMasqueradedJson(
         }
         if(!pMasqueradingVector[7].empty())
         {
-            if(getUpdatedat())
+            if(getCreator())
             {
-                ret[pMasqueradingVector[7]]=getUpdatedat()->toDbStringLocal();
+                ret[pMasqueradingVector[7]]=getValueOfCreator();
             }
             else
             {
@@ -1229,14 +1230,6 @@ Json::Value ChatGroups::toMasqueradedJson(
     {
         ret["max"]=Json::Value();
     }
-    if(getGroupCreator())
-    {
-        ret["group_creator"]=getValueOfGroupCreator();
-    }
-    else
-    {
-        ret["group_creator"]=Json::Value();
-    }
     if(getCreatedat())
     {
         ret["createdAt"]=getCreatedat()->toDbStringLocal();
@@ -1252,6 +1245,14 @@ Json::Value ChatGroups::toMasqueradedJson(
     else
     {
         ret["updatedAt"]=Json::Value();
+    }
+    if(getCreator())
+    {
+        ret["creator"]=getValueOfCreator();
+    }
+    else
+    {
+        ret["creator"]=Json::Value();
     }
     return ret;
 }
@@ -1283,25 +1284,25 @@ bool ChatGroups::validateJsonForCreation(const Json::Value &pJson, std::string &
         if(!validJsonOfField(4, "max", pJson["max"], err, true))
             return false;
     }
-    if(pJson.isMember("group_creator"))
-    {
-        if(!validJsonOfField(5, "group_creator", pJson["group_creator"], err, true))
-            return false;
-    }
-    else
-    {
-        err="The group_creator column cannot be null";
-        return false;
-    }
     if(pJson.isMember("createdAt"))
     {
-        if(!validJsonOfField(6, "createdAt", pJson["createdAt"], err, true))
+        if(!validJsonOfField(5, "createdAt", pJson["createdAt"], err, true))
             return false;
     }
     if(pJson.isMember("updatedAt"))
     {
-        if(!validJsonOfField(7, "updatedAt", pJson["updatedAt"], err, true))
+        if(!validJsonOfField(6, "updatedAt", pJson["updatedAt"], err, true))
             return false;
+    }
+    if(pJson.isMember("creator"))
+    {
+        if(!validJsonOfField(7, "creator", pJson["creator"], err, true))
+            return false;
+    }
+    else
+    {
+        err="The creator column cannot be null";
+        return false;
     }
     return true;
 }
@@ -1362,11 +1363,6 @@ bool ChatGroups::validateMasqueradedJsonForCreation(const Json::Value &pJson,
               if(!validJsonOfField(5, pMasqueradingVector[5], pJson[pMasqueradingVector[5]], err, true))
                   return false;
           }
-        else
-        {
-            err="The " + pMasqueradingVector[5] + " column cannot be null";
-            return false;
-        }
       }
       if(!pMasqueradingVector[6].empty())
       {
@@ -1383,6 +1379,11 @@ bool ChatGroups::validateMasqueradedJsonForCreation(const Json::Value &pJson,
               if(!validJsonOfField(7, pMasqueradingVector[7], pJson[pMasqueradingVector[7]], err, true))
                   return false;
           }
+        else
+        {
+            err="The " + pMasqueradingVector[7] + " column cannot be null";
+            return false;
+        }
       }
     }
     catch(const Json::LogicError &e)
@@ -1424,19 +1425,19 @@ bool ChatGroups::validateJsonForUpdate(const Json::Value &pJson, std::string &er
         if(!validJsonOfField(4, "max", pJson["max"], err, false))
             return false;
     }
-    if(pJson.isMember("group_creator"))
-    {
-        if(!validJsonOfField(5, "group_creator", pJson["group_creator"], err, false))
-            return false;
-    }
     if(pJson.isMember("createdAt"))
     {
-        if(!validJsonOfField(6, "createdAt", pJson["createdAt"], err, false))
+        if(!validJsonOfField(5, "createdAt", pJson["createdAt"], err, false))
             return false;
     }
     if(pJson.isMember("updatedAt"))
     {
-        if(!validJsonOfField(7, "updatedAt", pJson["updatedAt"], err, false))
+        if(!validJsonOfField(6, "updatedAt", pJson["updatedAt"], err, false))
+            return false;
+    }
+    if(pJson.isMember("creator"))
+    {
+        if(!validJsonOfField(7, "creator", pJson["creator"], err, false))
             return false;
     }
     return true;
@@ -1594,10 +1595,9 @@ bool ChatGroups::validJsonOfField(size_t index,
         case 5:
             if(pJson.isNull())
             {
-                err="The " + fieldName + " column cannot be null";
-                return false;
+                return true;
             }
-            if(!pJson.isInt())
+            if(!pJson.isString())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;
@@ -1617,9 +1617,10 @@ bool ChatGroups::validJsonOfField(size_t index,
         case 7:
             if(pJson.isNull())
             {
-                return true;
+                err="The " + fieldName + " column cannot be null";
+                return false;
             }
-            if(!pJson.isString())
+            if(!pJson.isInt())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;
@@ -1631,4 +1632,22 @@ bool ChatGroups::validJsonOfField(size_t index,
             break;
     }
     return true;
+}
+void ChatGroups::getMembers(const DbClientPtr &clientPtr,
+                            const std::function<void(std::vector<GroupMembers>)> &rcb,
+                            const ExceptionCallback &ecb) const
+{
+    const static std::string sql = "select * from group_members where group_id = ?";
+    *clientPtr << sql
+               << *id_
+               >> [rcb = std::move(rcb)](const Result &r){
+                   std::vector<GroupMembers> ret;
+                   ret.reserve(r.size());
+                   for (auto const &row : r)
+                   {
+                       ret.emplace_back(GroupMembers(row));
+                   }
+                   rcb(ret);
+               }
+               >> ecb;
 }

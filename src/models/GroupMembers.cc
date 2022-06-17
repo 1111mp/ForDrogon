@@ -6,6 +6,8 @@
  */
 
 #include "GroupMembers.h"
+#include "ChatGroups.h"
+#include "Users.h"
 #include <drogon/utils/Utilities.h>
 #include <string>
 
@@ -1138,4 +1140,50 @@ bool GroupMembers::validJsonOfField(size_t index,
             break;
     }
     return true;
+}
+void GroupMembers::getUser(const DbClientPtr &clientPtr,
+                           const std::function<void(Users)> &rcb,
+                           const ExceptionCallback &ecb) const
+{
+    const static std::string sql = "select * from users where id = ?";
+    *clientPtr << sql
+               << *userId_
+               >> [rcb = std::move(rcb), ecb](const Result &r){
+                    if (r.size() == 0)
+                    {
+                        ecb(UnexpectedRows("0 rows found"));
+                    }
+                    else if (r.size() > 1)
+                    {
+                        ecb(UnexpectedRows("Found more than one row"));
+                    }
+                    else
+                    {
+                        rcb(Users(r[0]));
+                    }
+               }
+               >> ecb;
+}
+void GroupMembers::getGroup(const DbClientPtr &clientPtr,
+                            const std::function<void(ChatGroups)> &rcb,
+                            const ExceptionCallback &ecb) const
+{
+    const static std::string sql = "select * from chat_groups where id = ?";
+    *clientPtr << sql
+               << *groupId_
+               >> [rcb = std::move(rcb), ecb](const Result &r){
+                    if (r.size() == 0)
+                    {
+                        ecb(UnexpectedRows("0 rows found"));
+                    }
+                    else if (r.size() > 1)
+                    {
+                        ecb(UnexpectedRows("Found more than one row"));
+                    }
+                    else
+                    {
+                        rcb(ChatGroups(r[0]));
+                    }
+               }
+               >> ecb;
 }

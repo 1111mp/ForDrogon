@@ -18,8 +18,9 @@ namespace api::v1::filters
 													 FilterChainCallback &&fccb)
 	{
 		auto headers = req->getHeaders();
+		auto token = headers["token"], userid = headers["userid"];
 
-		if (headers["token"].empty() || headers["userid"].empty())
+		if (token.empty() || userid.empty())
 		{
 			Json::Value resultJson;
 			resultJson["code"] = k401Unauthorized;
@@ -34,17 +35,17 @@ namespace api::v1::filters
 		try
 		{
 			auto redisClientPtr = app().getRedisClient();
-			auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + headers["userid"];
-			auto token = redisClientPtr->execCommandSync<std::string>(
+			auto auth = app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + userid;
+			auto bcryptStr = redisClientPtr->execCommandSync<std::string>(
 					[](const nosql::RedisResult &r)
 					{
 						if (r.type() == nosql::RedisResultType::kNil)
 							return std::string{};
 						return r.asString();
 					},
-					"hget %s %s", auth.data(), headers["token"].data());
+					"hget %s %s", auth.data(), token.data());
 
-			if (token.empty())
+			if (bcryptStr.empty())
 			{
 				Json::Value resultJson;
 				resultJson["code"] = k401Unauthorized;
@@ -54,7 +55,7 @@ namespace api::v1::filters
 				return fcb(res);
 			}
 
-			std::map<std::string, drogon::any> jwtAttributes = JWT::decodeToken(token);
+			std::map<std::string, drogon::any> jwtAttributes = JWT::decodeToken(bcryptStr);
 
 			if (jwtAttributes.empty())
 			{

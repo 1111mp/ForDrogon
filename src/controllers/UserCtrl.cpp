@@ -184,7 +184,7 @@ namespace api::v1
 
 		mapper.insert(
 				object,
-				[req, jsonPtr, callbackPtr, this](Users user)
+				[req, jsonPtr, callbackPtr, this](const Users &user)
 				{
 					auto userJson = user.toJson();
 					userJson.removeMember("pwd");

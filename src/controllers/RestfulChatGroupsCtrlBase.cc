@@ -428,9 +428,9 @@ RestfulChatGroupsCtrlBase::RestfulChatGroupsCtrlBase()
           "avatar",
           "type",
           "max",
-          "group_creator",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "creator"
       })
 {
    /**
@@ -444,8 +444,8 @@ RestfulChatGroupsCtrlBase::RestfulChatGroupsCtrlBase()
         "avatar", // the alias for the avatar column.
         "type", // the alias for the type column.
         "max", // the alias for the max column.
-        "group_creator", // the alias for the group_creator column.
         "createdAt", // the alias for the createdAt column.
-        "updatedAt"  // the alias for the updatedAt column.
+        "updatedAt", // the alias for the updatedAt column.
+        "creator"  // the alias for the creator column.
     });
 }
