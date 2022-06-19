@@ -31,46 +31,50 @@ namespace api::v1
                                            chatGroup,
                                            [=](const ChatGroups &group)
                                            {
-                                             auto groupJson = group.toJson();
-                                             groupJson["members"] = Json::arrayValue;
-                                             
-
-                                             
+                                             auto groupJson = std::make_shared<Json::Value>(group.toJson());
                                              Mapper<GroupMembers> memberMapper(transPtr);
-                                             for (int index = 0; index < members.size(); ++index)
+
+                                             for (unsigned int index = 0; index < members.size(); ++index)
                                              {
                                                Json::Value object;
-                                               object["group_id"] = groupJson["id"].asInt64();
+                                               object["group_id"] = (*groupJson)["id"].asInt64();
                                                object["user_id"] = members[index].asInt64();
                                                memberMapper.insert(
                                                    GroupMembers(object),
-                                                   [&, transPtr](const GroupMembers &member)
+                                                   [=](const GroupMembers &member)
                                                    {
                                                      member.getUser(
                                                       transPtr, 
-                                                      [&](const Users &user) {
+                                                      [=](const Users &user) {
                                                         auto userJson = user.toJson();
-                                                        LOG_INFO << userJson["id"].asInt64();
-                                                        groupJson["members"].append(userJson);
+                                                        userJson.removeMember("pwd");
+                                                        (*groupJson)["members"].append(userJson);
+                                                        
+                                                        if((*groupJson)["members"].size() == members.size()) {
+                                                          Json::Value resultJson;
+                                                          resultJson["code"] = k200OK;
+                                                          resultJson["data"] = (*groupJson);
+                                                          return callback(HttpResponse::newHttpJsonResponse(resultJson));
+                                                        }
                                                       }, 
                                                       [=](const DrogonDbException &err) {
-                                                        // const orm::UnexpectedRows *s = dynamic_cast<const orm::UnexpectedRows *>(&err.base());
-                                                        // Json::Value ret;
-                                                        // if (s)
-                                                        // {
-                                                        //   ret["code"] = k404NotFound;
-                                                        //   ret["msg"] = "Invalid userid: " + members[index].asString();
-                                                        //   auto resp = HttpResponse::newHttpJsonResponse(ret);
-                                                        //   resp->setStatusCode(k404NotFound);
-                                                        //   return callback(resp);
-                                                        // }
+                                                        const orm::UnexpectedRows *s = dynamic_cast<const orm::UnexpectedRows *>(&err.base());
+                                                        Json::Value ret;
+                                                        if (s)
+                                                        {
+                                                          ret["code"] = k404NotFound;
+                                                          ret["msg"] = "Invalid userid: " + members[index].asString();
+                                                          auto resp = HttpResponse::newHttpJsonResponse(ret);
+                                                          resp->setStatusCode(k404NotFound);
+                                                          return callback(resp);
+                                                        }
                                                         
-                                                        // LOG_ERROR << err.base().what();
-                                                        // ret["code"] = k500InternalServerError;
-                                                        // ret["msg"] = "database error";
-                                                        // auto resp = HttpResponse::newHttpJsonResponse(ret);
-                                                        // resp->setStatusCode(k500InternalServerError);
-                                                        // return callback(resp);
+                                                        LOG_ERROR << err.base().what();
+                                                        ret["code"] = k500InternalServerError;
+                                                        ret["msg"] = "database error";
+                                                        auto resp = HttpResponse::newHttpJsonResponse(ret);
+                                                        resp->setStatusCode(k500InternalServerError);
+                                                        return callback(resp);
                                                       }
                                                      );
                                                    },
@@ -88,17 +92,12 @@ namespace api::v1
                                                         }
                                                      LOG_ERROR << err.base().what();
                                                      ret["code"] = k500InternalServerError;
-                                                     ret["msg"] = "database errors";
+                                                     ret["msg"] = "database error.";
                                                      auto resp = HttpResponse::newHttpJsonResponse(ret);
                                                      resp->setStatusCode(k500InternalServerError);
                                                      return callback(resp);
                                                    });
                                              }
-
-                                              Json::Value resultJson;
-                                              resultJson["code"] = k200OK;
-                                              resultJson["data"] = groupJson;
-                                              return callback(HttpResponse::newHttpJsonResponse(resultJson));
                                            },
                                            [=](const DrogonDbException &err)
                                            {
