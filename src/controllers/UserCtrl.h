@@ -30,15 +30,15 @@ namespace api::v1
     METHOD_ADD(User::create, "", Post, Options);
     METHOD_ADD(User::deleteOne, "", Delete, Options, "api::v1::filters::JwtFilter");
     METHOD_ADD(User::updateOne, "", Put, Options, "api::v1::filters::JwtFilter");
-    METHOD_ADD(User::getOne, "", Get, Options, "api::v1::filters::JwtFilter");
+    METHOD_ADD(User::getOne, "/{1}", Get, Options, "api::v1::filters::JwtFilter");
     METHOD_LIST_END
 
-    void login(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-    void logout(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-    void create(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-    void deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-    void updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
-    void getOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    Task<void> login(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback);
+    Task<void> logout(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback);
+    Task<void> create(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback);
+    Task<void> deleteOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback);
+    Task<void> updateOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback);
+    Task<void> getOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, Users::PrimaryKeyType id);
 
   private:
     orm::DbClientPtr getDbClient()

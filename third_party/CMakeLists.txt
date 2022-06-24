@@ -2,7 +2,7 @@ message(STATUS "################Add Module Thgirdparty################")
 
 add_subdirectory(drogon)
 
-# set(UUID_USING_CXX20_SPAN ON)
+set(UUID_USING_CXX20_SPAN ON)
 set(UUID_BUILD_TESTS OFF)
 add_subdirectory(stduuid)
 

@@ -17,6 +17,10 @@ namespace api::v1::filters
 													 FilterCallback &&fcb,
 													 FilterChainCallback &&fccb)
 	{
+		// Skip the verification on method Options
+		if (req->getMethod() == HttpMethod::Options)
+			return fccb();
+
 		auto headers = req->getHeaders();
 		auto token = headers["token"], userid = headers["userid"];
 

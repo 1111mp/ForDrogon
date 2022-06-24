@@ -24,7 +24,7 @@ namespace api::v1
     METHOD_LIST_END
 
   public:
-    void create(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
+    Task<void> create(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback);
     void deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     void updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
     void get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback);
@@ -38,6 +38,13 @@ namespace api::v1
     nosql::RedisClientPtr getRedisClient()
     {
       return drogon::app().getRedisClient(redieClientName_);
+    }
+
+    Task<Users> getUser(const DbClientPtr &clientPtr, const int32_t &id)
+    {
+      auto result = co_await clientPtr->execSqlCoro("select * from users where id=?;", id);
+
+      co_return Users(result[0]);
     }
 
   private:
