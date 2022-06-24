@@ -424,10 +424,10 @@ void RestfulGroupMembersCtrlBase::update(const HttpRequestPtr &req,
 RestfulGroupMembersCtrlBase::RestfulGroupMembersCtrlBase()
     : RestfulController({
           "id",
-          "group_id",
-          "user_id",
           "createdAt",
-          "updatedAt"
+          "updatedAt",
+          "groupId",
+          "userId"
       })
 {
    /**
@@ -437,9 +437,9 @@ RestfulGroupMembersCtrlBase::RestfulGroupMembersCtrlBase()
     */
     enableMasquerading({
         "id", // the alias for the id column.
-        "group_id", // the alias for the group_id column.
-        "user_id", // the alias for the user_id column.
         "createdAt", // the alias for the createdAt column.
-        "updatedAt"  // the alias for the updatedAt column.
+        "updatedAt", // the alias for the updatedAt column.
+        "groupId", // the alias for the groupId column.
+        "userId"  // the alias for the userId column.
     });
 }

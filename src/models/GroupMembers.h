@@ -45,10 +45,10 @@ class GroupMembers
     struct Cols
     {
         static const std::string _id;
-        static const std::string _group_id;
-        static const std::string _user_id;
         static const std::string _createdAt;
         static const std::string _updatedAt;
+        static const std::string _groupId;
+        static const std::string _userId;
     };
 
     const static int primaryKeyNumber;
@@ -108,24 +108,6 @@ class GroupMembers
     ///Set the value of the column id
     void setId(const int32_t &pId) noexcept;
 
-    /**  For column group_id  */
-    ///Get the value of the column group_id, returns the default value if the column is null
-    const int32_t &getValueOfGroupId() const noexcept;
-    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getGroupId() const noexcept;
-    ///Set the value of the column group_id
-    void setGroupId(const int32_t &pGroupId) noexcept;
-    void setGroupIdToNull() noexcept;
-
-    /**  For column user_id  */
-    ///Get the value of the column user_id, returns the default value if the column is null
-    const int32_t &getValueOfUserId() const noexcept;
-    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int32_t> &getUserId() const noexcept;
-    ///Set the value of the column user_id
-    void setUserId(const int32_t &pUserId) noexcept;
-    void setUserIdToNull() noexcept;
-
     /**  For column createdAt  */
     ///Get the value of the column createdAt, returns the default value if the column is null
     const ::trantor::Date &getValueOfCreatedat() const noexcept;
@@ -143,6 +125,22 @@ class GroupMembers
     ///Set the value of the column updatedAt
     void setUpdatedat(const ::trantor::Date &pUpdatedat) noexcept;
     void setUpdatedatToNull() noexcept;
+
+    /**  For column groupId  */
+    ///Get the value of the column groupId, returns the default value if the column is null
+    const int32_t &getValueOfGroupid() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int32_t> &getGroupid() const noexcept;
+    ///Set the value of the column groupId
+    void setGroupid(const int32_t &pGroupid) noexcept;
+
+    /**  For column userId  */
+    ///Get the value of the column userId, returns the default value if the column is null
+    const int32_t &getValueOfUserid() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int32_t> &getUserid() const noexcept;
+    ///Set the value of the column userId
+    void setUserid(const int32_t &pUserid) noexcept;
 
 
     static size_t getColumnNumber() noexcept {  return 5;  }
@@ -169,10 +167,10 @@ class GroupMembers
     ///For mysql or sqlite3
     void updateId(const uint64_t id);
     std::shared_ptr<int32_t> id_;
-    std::shared_ptr<int32_t> groupId_;
-    std::shared_ptr<int32_t> userId_;
     std::shared_ptr<::trantor::Date> createdat_;
     std::shared_ptr<::trantor::Date> updatedat_;
+    std::shared_ptr<int32_t> groupid_;
+    std::shared_ptr<int32_t> userid_;
     struct MetaData
     {
         const std::string colName_;
@@ -206,22 +204,22 @@ class GroupMembers
             ++parametersCount;
         if(dirtyFlag_[1])
         {
-            sql += "group_id,";
+            sql += "createdAt,";
             ++parametersCount;
         }
         if(dirtyFlag_[2])
         {
-            sql += "user_id,";
+            sql += "updatedAt,";
             ++parametersCount;
         }
         if(dirtyFlag_[3])
         {
-            sql += "createdAt,";
+            sql += "groupId,";
             ++parametersCount;
         }
         if(dirtyFlag_[4])
         {
-            sql += "updatedAt,";
+            sql += "userId,";
             ++parametersCount;
         }
         needSelection=true;

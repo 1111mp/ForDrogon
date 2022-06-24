@@ -1637,7 +1637,7 @@ void ChatGroups::getMembers(const DbClientPtr &clientPtr,
                             const std::function<void(std::vector<GroupMembers>)> &rcb,
                             const ExceptionCallback &ecb) const
 {
-    const static std::string sql = "select * from group_members where group_id = ?";
+    const static std::string sql = "select * from group_members where groupId = ?";
     *clientPtr << sql
                << *id_
                >> [rcb = std::move(rcb)](const Result &r){

@@ -45,7 +45,7 @@ namespace api::v1
         {
           auto member = co_await memberMapper.insert(GroupMembers(object));
 
-          auto id = member.getUserId().get();
+          auto id = member.getUserid().get();
           auto userJson = (co_await getUser(transPtr, *id)).toJson();
           userJson.removeMember("pwd");
           groupJson["members"].append(userJson);
@@ -92,16 +92,91 @@ namespace api::v1
     co_return;
   }
 
-  void Group::deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
+  Task<void> Group::deleteOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType id)
+  {
+    auto dbClientPtr = getDbClient();
+    Json::Value ret;
+    try
+    {
+      auto transPtr = co_await dbClientPtr->newTransactionCoro();
+      CoroMapper<ChatGroups> groupMapper(transPtr);
+      auto members = co_await getMembers(transPtr, id);
+      CoroMapper<GroupMembers> memberMapper(transPtr);
+      for (auto const &member : members)
+      {
+        auto count = co_await memberMapper.deleteByPrimaryKey(member.getPrimaryKey());
+        if (count != 1)
+        {
+          transPtr->rollback();
+          auto userId = member.getUserid();
+          ret["code"] = k500InternalServerError;
+          ret["msg"] = "Error deleting user: " + *userId;
+          auto resp = HttpResponse::newHttpJsonResponse(ret);
+          resp->setStatusCode(k500InternalServerError);
+          callback(resp);
+          co_return;
+        }
+      }
+      auto count = co_await groupMapper.deleteByPrimaryKey(id);
+      if (count != 1)
+      {
+        transPtr->rollback();
+        ret["code"] = k500InternalServerError;
+        ret["msg"] = "Error deleting group: " + id;
+        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        resp->setStatusCode(k500InternalServerError);
+        callback(resp);
+        co_return;
+      }
+
+      ret["code"] = k200OK;
+      ret["msg"] = "Group deleted successfully.";
+      callback(HttpResponse::newHttpJsonResponse(ret));
+    }
+    catch (const DrogonDbException &err)
+    {
+      ret["code"] = k500InternalServerError;
+      ret["msg"] = "database error.";
+      auto resp = HttpResponse::newHttpJsonResponse(ret);
+      resp->setStatusCode(k500InternalServerError);
+      callback(resp);
+    }
+    co_return;
+  }
+
+  Task<void> Group::updateOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback)
   {
   }
 
-  void Group::updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
+  Task<void> Group::getOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id)
   {
-  }
-
-  void Group::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
-  {
+    auto dbClientPtr = getDbClient();
+    CoroMapper<ChatGroups> mapper(dbClientPtr);
+    Json::Value ret;
+    try
+    {
+      auto groupJson = (co_await mapper.findByPrimaryKey(id)).toJson();
+      auto members = co_await getMembersWithInfo(dbClientPtr, id);
+      for (auto const &member : members)
+      {
+        auto memberJson = member.toJson();
+        memberJson.removeMember("pwd");
+        groupJson["members"].append(memberJson);
+      }
+      ret["code"] = k200OK;
+      ret["data"] = groupJson;
+      callback(HttpResponse::newHttpJsonResponse(ret));
+    }
+    catch (const DrogonDbException &err)
+    {
+      LOG_ERROR << err.base().what();
+      ret["code"] = k500InternalServerError;
+      ret["msg"] = "database error.";
+      auto resp = HttpResponse::newHttpJsonResponse(ret);
+      resp->setStatusCode(k500InternalServerError);
+      callback(resp);
+    }
+    co_return;
   }
 
 }

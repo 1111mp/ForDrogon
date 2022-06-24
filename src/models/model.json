@@ -45,7 +45,7 @@
         "type": "has one",
         "original_table_name": "group_members",
         "original_table_alias": "member",
-        "original_key": "user_id",
+        "original_key": "userId",
         "target_table_name": "users",
         "target_table_alias": "user",
         "target_key": "id",
@@ -58,7 +58,7 @@
         "original_key": "id",
         "target_table_name": "group_members",
         "target_table_alias": "members",
-        "target_key": "group_id",
+        "target_key": "groupId",
         "enable_reverse": true
       }
       // {
