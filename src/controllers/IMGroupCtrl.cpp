@@ -38,8 +38,8 @@ namespace api::v1
       for (unsigned int index = 0; index < members.size(); ++index)
       {
         Json::Value object;
-        object["group_id"] = groupJson["id"].asInt64();
-        object["user_id"] = members[index].asInt64();
+        object["groupId"] = groupJson["id"].asInt64();
+        object["userId"] = members[index].asInt64();
 
         try
         {
@@ -92,7 +92,7 @@ namespace api::v1
     co_return;
   }
 
-  Task<void> Group::deleteOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType id)
+  Task<void> Group::deleteOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id)
   {
     auto dbClientPtr = getDbClient();
     Json::Value ret;
@@ -144,19 +144,98 @@ namespace api::v1
     co_return;
   }
 
-  Task<void> Group::updateOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback)
+  Task<void> Group::updateOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id)
   {
+    auto jsonPtr = req->getJsonObject();
+    Json::Value ret;
+    if (!jsonPtr)
+    {
+      ret["code"] = k400BadRequest;
+      ret["msg"] = "No json object is found in the request";
+      auto resp = HttpResponse::newHttpJsonResponse(ret);
+      resp->setStatusCode(k400BadRequest);
+      callback(resp);
+      co_return;
+    }
+
+    auto dbClientPtr = getDbClient();
+    try
+    {
+      auto transPtr = co_await dbClientPtr->newTransactionCoro();
+      ChatGroups object{id = id};
+      object.setUpdatedat(trantor::Date::now());
+      if ((*jsonPtr).isMember("name"))
+        object.setName((*jsonPtr)["name"].asString());
+      if ((*jsonPtr).isMember("avatar"))
+        object.setName((*jsonPtr)["avatar"].asString());
+
+      CoroMapper<ChatGroups> groupMapper(transPtr);
+      auto count = co_await groupMapper.update(object);
+      if (count != 1)
+      {
+        transPtr->rollback();
+        ret["code"] = k500InternalServerError;
+        ret["msg"] = "database error";
+        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        resp->setStatusCode(k500InternalServerError);
+        callback(resp);
+        co_return;
+      }
+
+      // add group member
+      if ((*jsonPtr).isMember("members") && (*jsonPtr)["members"].size())
+      {
+        CoroMapper<GroupMembers> memberMapper(transPtr);
+        for (unsigned int index; index < (*jsonPtr)["members"].size(); ++index)
+        {
+          Json::Value memberObj;
+          memberObj["groupId"] = id;
+          memberObj["userId"] = (*jsonPtr)["members"][index].asInt64();
+          try
+          {
+            auto member = co_await memberMapper.insert(GroupMembers(memberObj));
+          }
+          catch (const DrogonDbException &err)
+          {
+            LOG_INFO << err.base().what();
+            transPtr->rollback();
+            ret["code"] = k500InternalServerError;
+            ret["msg"] = "database error";
+            auto resp = HttpResponse::newHttpJsonResponse(ret);
+            resp->setStatusCode(k500InternalServerError);
+            callback(resp);
+            co_return;
+          }
+        }
+      }
+
+      ret["code"] = k200OK;
+      ret["msg"] = "update successed";
+      callback(HttpResponse::newHttpJsonResponse(ret));
+      co_return;
+    }
+    catch (const DrogonDbException &err)
+    {
+      LOG_INFO << err.base().what();
+      ret["code"] = k500InternalServerError;
+      ret["msg"] = "database error";
+      auto resp = HttpResponse::newHttpJsonResponse(ret);
+      resp->setStatusCode(k500InternalServerError);
+      callback(resp);
+      co_return;
+    }
   }
 
   Task<void> Group::getOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id)
   {
     auto dbClientPtr = getDbClient();
-    CoroMapper<ChatGroups> mapper(dbClientPtr);
     Json::Value ret;
     try
     {
+      auto transPtr = co_await dbClientPtr->newTransactionCoro();
+      CoroMapper<ChatGroups> mapper(transPtr);
       auto groupJson = (co_await mapper.findByPrimaryKey(id)).toJson();
-      auto members = co_await getMembersWithInfo(dbClientPtr, id);
+      auto members = co_await getMembersWithInfo(transPtr, id);
       for (auto const &member : members)
       {
         auto memberJson = member.toJson();

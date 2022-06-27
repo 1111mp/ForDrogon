@@ -19,14 +19,14 @@ namespace api::v1
     METHOD_LIST_BEGIN
     METHOD_ADD(Group::create, "", Post, Options, "api::v1::filters::JwtFilter");
     METHOD_ADD(Group::deleteOne, "/{1}", Delete, Options, "api::v1::filters::JwtFilter");
-    METHOD_ADD(Group::updateOne, "", Put, Options, "api::v1::filters::JwtFilter");
+    METHOD_ADD(Group::updateOne, "{1}", Put, Options, "api::v1::filters::JwtFilter");
     METHOD_ADD(Group::getOne, "/{1}", Get, Options, "api::v1::filters::JwtFilter");
     METHOD_LIST_END
 
   public:
     Task<void> create(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback);
-    Task<void> deleteOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType id);
-    Task<void> updateOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback);
+    Task<void> deleteOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id);
+    Task<void> updateOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id);
     Task<void> getOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id);
 
   private:
