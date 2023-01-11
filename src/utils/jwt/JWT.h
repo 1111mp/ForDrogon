@@ -6,6 +6,12 @@
 namespace Utils::jwt
 {
 
+  struct InfoForUser
+  {
+    bool member;
+    int64_t userid;
+  };
+
   class JWT
   {
   public:
@@ -23,14 +29,13 @@ namespace Utils::jwt
     }
 
     static JWT generateToken(const std::map<std::string, ::jwt::traits::kazuho_picojson::value_type> &claims = {}, const bool &extension = false);
-    static std::map<std::string, drogon::any> decodeToken(const std::string &encodedToken);
+    static InfoForUser decodeToken(const std::string &encodedToken);
 
   private:
     std::string token;
     int64_t expiration;
 
     static bool verifyToken(const ::jwt::decoded_jwt<::jwt::traits::kazuho_picojson> &jwt);
-    static void addClaimToAttributes(std::map<std::string, drogon::any> &attributes, const std::pair<std::string, ::jwt::basic_claim<::jwt::traits::kazuho_picojson>> &claim);
   };
 
 }

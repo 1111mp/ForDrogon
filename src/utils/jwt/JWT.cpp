@@ -29,7 +29,7 @@ namespace Utils::jwt
     };
   }
 
-  std::map<std::string, drogon::any> JWT::decodeToken(const std::string &encodedToken)
+  InfoForUser JWT::decodeToken(const std::string &encodedToken)
   {
     // Let's decode it, if isn't a valid token of JWT, catch will be called
     try
@@ -38,12 +38,9 @@ namespace Utils::jwt
 
       if (verifyToken(decodedToken))
       {
-        std::map<std::string, drogon::any> attributes = {};
-
-        for (auto &claim : decodedToken.get_payload_claims())
-          addClaimToAttributes(attributes, claim);
-
-        return attributes;
+        auto member = decodedToken.get_payload_claim("member").as_boolean();
+        auto userid = decodedToken.get_payload_claim("userid").as_integer();
+        return {member, userid};
       }
 
       throw;
@@ -71,33 +68,6 @@ namespace Utils::jwt
     catch (const std::exception &e)
     {
       return false;
-    }
-  }
-
-  void JWT::addClaimToAttributes(std::map<std::string, drogon::any> &attributes, const std::pair<std::string, ::jwt::basic_claim<::jwt::traits::kazuho_picojson>> &claim)
-  {
-    switch (claim.second.get_type())
-    {
-    case ::jwt::json::type::boolean:
-      attributes.insert(std::pair<std::string, bool>(claim.first, claim.second.as_bool()));
-      break;
-    case ::jwt::json::type::integer:
-      attributes.insert(std::pair<std::string, int64_t>(claim.first, claim.second.as_int()));
-      break;
-    case ::jwt::json::type::number:
-      attributes.insert(std::pair<std::string, double>(claim.first, claim.second.as_number()));
-      break;
-    case ::jwt::json::type::string:
-      attributes.insert(std::pair<std::string, std::string>(claim.first, claim.second.as_string()));
-      break;
-    case ::jwt::json::type::array:
-      attributes.insert(std::pair<std::string, drogon::any>(claim.first, claim.second.as_array()));
-      break;
-    case ::jwt::json::type::object:
-      attributes.insert(std::pair<std::string, drogon::any>(claim.first, claim.second));
-      break;
-    default:
-      throw std::bad_cast();
     }
   }
 

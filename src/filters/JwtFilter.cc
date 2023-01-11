@@ -59,9 +59,9 @@ namespace api::v1::filters
 				return fcb(res);
 			}
 
-			std::map<std::string, drogon::any> jwtAttributes = JWT::decodeToken(bcryptStr);
+			auto jwtAttributes = JWT::decodeToken(bcryptStr);
 
-			if (jwtAttributes.empty())
+			if ((&jwtAttributes) == nullptr)
 			{
 				Json::Value resultJson;
 				resultJson["code"] = k401Unauthorized;
@@ -71,7 +71,7 @@ namespace api::v1::filters
 				return fcb(res);
 			}
 
-			auto member = std::any_cast<bool>(jwtAttributes["member"]);
+			auto member = jwtAttributes.member;
 			if (!member)
 			{
 				// The validity period is automatically extended by one hour.
@@ -84,8 +84,7 @@ namespace api::v1::filters
 			}
 
 			// Save the claims on attributes, for on next endpoint to be accessible
-			for (auto &attribute : jwtAttributes)
-				req->getAttributes()->insert("jwt_" + attribute.first, attribute.second);
+			req->getAttributes()->insert("jwt_userid", jwtAttributes.userid);
 
 			return fccb();
 		}
