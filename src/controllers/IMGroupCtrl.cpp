@@ -1,4 +1,5 @@
 #include "IMGroupCtrl.h"
+#include "common/Common.h"
 
 namespace api::v1
 {
@@ -11,11 +12,7 @@ namespace api::v1
 
     if ((type != 1 && type != 2) || !members.isArray() || members.size() == 0)
     {
-      Json::Value resultJson;
-      resultJson["code"] = k400BadRequest;
-      resultJson["msg"] = "Invalid parameter.";
-      auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-      resp->setStatusCode(k400BadRequest);
+      auto resp = Utils::Common::makeHttpJsonResponse(k400BadRequest, "Invalid parameter.");
       callback(resp);
       co_return;
     }
@@ -53,39 +50,26 @@ namespace api::v1
         catch (const DrogonDbException &err)
         {
           const orm::SqlError *s = dynamic_cast<const orm::SqlError *>(&err.base());
-          Json::Value ret;
           if (s)
           {
-            ret["code"] = k404NotFound;
-            ret["msg"] = "Invalid userid: " + members[index].asString();
-            auto resp = HttpResponse::newHttpJsonResponse(ret);
-            resp->setStatusCode(k404NotFound);
+            auto resp = Utils::Common::makeHttpJsonResponse(k404NotFound, "Invalid userid: " + members[index].asString());
             callback(resp);
             co_return;
           }
           LOG_ERROR << err.base().what();
-          ret["code"] = k500InternalServerError;
-          ret["msg"] = "database error.";
-          auto resp = HttpResponse::newHttpJsonResponse(ret);
-          resp->setStatusCode(k500InternalServerError);
+          auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
           callback(resp);
           co_return;
         }
       }
 
-      Json::Value resultJson;
-      resultJson["code"] = k200OK;
-      resultJson["data"] = groupJson;
-      callback(HttpResponse::newHttpJsonResponse(resultJson));
+      auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "created successfully.", groupJson);
+      callback(resp);
     }
     catch (const Failure &err)
     {
       LOG_ERROR << err.what();
-      Json::Value ret;
-      ret["code"] = k500InternalServerError;
-      ret["msg"] = "database error.";
-      auto resp = HttpResponse::newHttpJsonResponse(ret);
-      resp->setStatusCode(k500InternalServerError);
+      auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
       callback(resp);
     }
 
@@ -95,7 +79,6 @@ namespace api::v1
   Task<void> Group::deleteOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id)
   {
     auto dbClientPtr = getDbClient();
-    Json::Value ret;
     try
     {
       auto transPtr = co_await dbClientPtr->newTransactionCoro();
@@ -109,10 +92,7 @@ namespace api::v1
         {
           transPtr->rollback();
           auto userId = member.getUserid();
-          ret["code"] = k500InternalServerError;
-          ret["msg"] = "Error deleting user: " + *userId;
-          auto resp = HttpResponse::newHttpJsonResponse(ret);
-          resp->setStatusCode(k500InternalServerError);
+          auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "Error deleting user: " + *userId);
           callback(resp);
           co_return;
         }
@@ -121,24 +101,17 @@ namespace api::v1
       if (count != 1)
       {
         transPtr->rollback();
-        ret["code"] = k500InternalServerError;
-        ret["msg"] = "Error deleting group: " + id;
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
-        resp->setStatusCode(k500InternalServerError);
+        auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "Error deleting group: " + id);
         callback(resp);
         co_return;
       }
 
-      ret["code"] = k200OK;
-      ret["msg"] = "Group deleted successfully.";
-      callback(HttpResponse::newHttpJsonResponse(ret));
+      auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "Group deleted successfully.");
+      callback(resp);
     }
     catch (const DrogonDbException &err)
     {
-      ret["code"] = k500InternalServerError;
-      ret["msg"] = "database error.";
-      auto resp = HttpResponse::newHttpJsonResponse(ret);
-      resp->setStatusCode(k500InternalServerError);
+      auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
       callback(resp);
     }
     co_return;
@@ -147,14 +120,9 @@ namespace api::v1
   Task<void> Group::updateOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id)
   {
     auto jsonPtr = req->getJsonObject();
-    Json::Value ret;
     if (!jsonPtr)
     {
-      ret["code"] = k400BadRequest;
-      ret["msg"] = "No json object is found in the request";
-      auto resp = HttpResponse::newHttpJsonResponse(ret);
-      resp->setStatusCode(k400BadRequest);
-      callback(resp);
+      auto resp = Utils::Common::makeHttpJsonResponse(k400BadRequest, "No json object is found in the request");
       co_return;
     }
 
@@ -174,11 +142,7 @@ namespace api::v1
       if (count != 1)
       {
         transPtr->rollback();
-        ret["code"] = k500InternalServerError;
-        ret["msg"] = "database error";
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
-        resp->setStatusCode(k500InternalServerError);
-        callback(resp);
+        auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
         co_return;
       }
 
@@ -199,28 +163,21 @@ namespace api::v1
           {
             LOG_INFO << err.base().what();
             transPtr->rollback();
-            ret["code"] = k500InternalServerError;
-            ret["msg"] = "database error";
-            auto resp = HttpResponse::newHttpJsonResponse(ret);
-            resp->setStatusCode(k500InternalServerError);
+            auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
             callback(resp);
             co_return;
           }
         }
       }
 
-      ret["code"] = k200OK;
-      ret["msg"] = "update successed";
-      callback(HttpResponse::newHttpJsonResponse(ret));
+      auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "update successed.");
+      callback(resp);
       co_return;
     }
     catch (const DrogonDbException &err)
     {
       LOG_INFO << err.base().what();
-      ret["code"] = k500InternalServerError;
-      ret["msg"] = "database error";
-      auto resp = HttpResponse::newHttpJsonResponse(ret);
-      resp->setStatusCode(k500InternalServerError);
+      auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
       callback(resp);
       co_return;
     }
@@ -229,7 +186,6 @@ namespace api::v1
   Task<void> Group::getOne(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback, ChatGroups::PrimaryKeyType &&id)
   {
     auto dbClientPtr = getDbClient();
-    Json::Value ret;
     try
     {
       auto transPtr = co_await dbClientPtr->newTransactionCoro();
@@ -242,17 +198,14 @@ namespace api::v1
         memberJson.removeMember("pwd");
         groupJson["members"].append(memberJson);
       }
-      ret["code"] = k200OK;
-      ret["data"] = groupJson;
-      callback(HttpResponse::newHttpJsonResponse(ret));
+
+      auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "", groupJson);
+      callback(resp);
     }
     catch (const DrogonDbException &err)
     {
       LOG_ERROR << err.base().what();
-      ret["code"] = k500InternalServerError;
-      ret["msg"] = "database error.";
-      auto resp = HttpResponse::newHttpJsonResponse(ret);
-      resp->setStatusCode(k500InternalServerError);
+      auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
       callback(resp);
     }
     co_return;

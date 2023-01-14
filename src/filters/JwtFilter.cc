@@ -38,14 +38,7 @@ namespace api::v1::filters
 		{
 			auto redisClientPtr = drogon::app().getFastRedisClient();
 			auto auth = drogon::app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + userid;
-			// auto bcryptStr = redisClientPtr->execCommandSync<std::string>(
-			// 		[](const nosql::RedisResult &r)
-			// 		{
-			// 			if (r.type() == nosql::RedisResultType::kNil)
-			// 				return std::string{};
-			// 			return r.asString();
-			// 		},
-			// 		"hget %s %s", auth.data(), token.data());
+
 			auto result = co_await redisClientPtr->execCommandCoro("hget %s %s", auth.data(), token.data());
 			if (result.isNil())
 			{
@@ -72,13 +65,6 @@ namespace api::v1::filters
 			auto member = jwtAttributes.member;
 			if (!member)
 			{
-				// The validity period is automatically extended by one hour.
-				// redisClientPtr->execCommandSync<int>(
-				// 		[](const nosql::RedisResult &r)
-				// 		{
-				// 			return r.asInteger();
-				// 		},
-				// 		"expire %s %i", auth.data(), 3600);
 				co_await redisClientPtr->execCommandCoro("expire %s %i", auth.data(), 3600);
 			}
 

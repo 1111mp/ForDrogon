@@ -10,7 +10,8 @@
 #include <string>
 #include "bcrypt/bcrypt.h"
 #include "jwt/JWT.h"
-#include "uuid/UtilUUID.h"
+#include "UUID/UtilUUID.h"
+#include "common/Common.h"
 
 namespace api::v1
 {
@@ -21,11 +22,7 @@ namespace api::v1
 
 		if (!jsonPtr || !jsonPtr->isMember("account") || !jsonPtr->isMember("pwd"))
 		{
-			Json::Value resultJson;
-			resultJson["code"] = k400BadRequest;
-			resultJson["msg"] = "Missing account or password.";
-			auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-			resp->setStatusCode(k400BadRequest);
+			auto resp = Utils::Common::makeHttpJsonResponse(k400BadRequest, "Missing account or password.");
 			callback(resp);
 			co_return;
 		}
@@ -40,10 +37,8 @@ namespace api::v1
 			if (!Utils::Bcrypt::compare((*jsonPtr)["pwd"].asString(), user.getPwd()->data()))
 			{
 				// Compare password hash.
-				Json::Value resultJson;
-				resultJson["code"] = k403Forbidden;
-				resultJson["msg"] = "Incorrect account or password.";
-				callback(HttpResponse::newHttpJsonResponse(resultJson));
+				auto resp = Utils::Common::makeHttpJsonResponse(k403Forbidden, "Incorrect account or password.");
+				callback(resp);
 				co_return;
 			}
 
@@ -73,21 +68,15 @@ namespace api::v1
 				co_await transPtr->execCommandCoro("expire %s %lld", auth.data(), expiresAt);
 				co_await transPtr->executeCoro();
 
-				Json::Value resultJson;
-				resultJson["code"] = k200OK;
-				resultJson["token"] = uuid;
-				resultJson["data"] = userJson;
-				callback(HttpResponse::newHttpJsonResponse(resultJson));
+				userJson["token"] = uuid;
+				auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "", userJson);
+				callback(resp);
 				co_return;
 			}
 			catch (const std::exception &err)
 			{
 				LOG_ERROR << err.what();
-				Json::Value ret;
-				ret["code"] = k500InternalServerError;
-				ret["msg"] = err.what();
-				auto resp = HttpResponse::newHttpJsonResponse(ret);
-				resp->setStatusCode(k500InternalServerError);
+				auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, err.what());
 				callback(resp);
 				co_return;
 			}
@@ -103,11 +92,7 @@ namespace api::v1
 				co_return;
 			}
 			LOG_ERROR << err.base().what();
-			Json::Value resultJson;
-			resultJson["code"] = k500InternalServerError;
-			resultJson["msg"] = "database error.";
-			auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-			resp->setStatusCode(k500InternalServerError);
+			auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
 			callback(resp);
 			co_return;
 		}
@@ -121,21 +106,15 @@ namespace api::v1
 
 		try
 		{
-			redisClientPtr->execCommandCoro("del %s", auth.data());
+			co_await redisClientPtr->execCommandCoro("del %s", auth.data());
 
-			Json::Value resultJson;
-			resultJson["code"] = k200OK;
-			resultJson["msg"] = "Sign out successfully.";
-			callback(HttpResponse::newHttpJsonResponse(resultJson));
+			auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "Sign out successfully.");
+			callback(resp);
 		}
 		catch (const std::exception &err)
 		{
 			LOG_ERROR << err.what();
-			Json::Value resultJson;
-			resultJson["code"] = k500InternalServerError;
-			resultJson["msg"] = err.what();
-			auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-			resp->setStatusCode(k500InternalServerError);
+			auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, err.what());
 			callback(resp);
 		}
 		co_return;
@@ -146,11 +125,7 @@ namespace api::v1
 		auto jsonPtr = req->getJsonObject();
 		if (!jsonPtr || !jsonPtr->isMember("account") || !jsonPtr->isMember("pwd"))
 		{
-			Json::Value resultJson;
-			resultJson["code"] = k400BadRequest;
-			resultJson["msg"] = "Missing account or password.";
-			auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-			resp->setStatusCode(k400BadRequest);
+			auto resp = Utils::Common::makeHttpJsonResponse(k400BadRequest, "Missing account or password.");
 			callback(resp);
 			co_return;
 		}
@@ -190,21 +165,15 @@ namespace api::v1
 				co_await transPtr->execCommandCoro("expire %s %lld", auth.data(), expiresAt);
 				co_await transPtr->executeCoro();
 
-				Json::Value resultJson;
-				resultJson["code"] = k200OK;
-				resultJson["token"] = uuid;
-				resultJson["data"] = userJson;
-				callback(HttpResponse::newHttpJsonResponse(resultJson));
+				userJson["token"] = uuid;
+				auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "", userJson);
+				callback(resp);
 				co_return;
 			}
 			catch (const std::exception &err)
 			{
 				LOG_ERROR << err.what();
-				Json::Value resultJson;
-				resultJson["code"] = k500InternalServerError;
-				resultJson["msg"] = err.what();
-				auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-				resp->setStatusCode(k500InternalServerError);
+				auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, err.what());
 				callback(resp);
 				co_return;
 			}
@@ -212,22 +181,15 @@ namespace api::v1
 		catch (const DrogonDbException &err)
 		{
 			const orm::UniqueViolation *s = dynamic_cast<const orm::UniqueViolation *>(&err.base());
-			Json::Value resultJson;
 			if (s)
 			{
-				resultJson["code"] = k409Conflict;
-				resultJson["msg"] = "The account already exists.";
-				auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-				resp->setStatusCode(k409Conflict);
+				auto resp = Utils::Common::makeHttpJsonResponse(k409Conflict, "The account already exists.");
 				callback(resp);
 				co_return;
 			}
 
 			LOG_ERROR << err.base().what();
-			resultJson["code"] = k500InternalServerError;
-			resultJson["msg"] = "database error";
-			auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-			resp->setStatusCode(k500InternalServerError);
+			auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
 			callback(resp);
 			co_return;
 		}
@@ -241,7 +203,6 @@ namespace api::v1
 		auto dbClientPtr = getDbClient();
 		CoroMapper<Users> mapper(dbClientPtr);
 
-		Json::Value ret;
 		try
 		{
 			auto count = co_await mapper.deleteByPrimaryKey(userID);
@@ -250,34 +211,25 @@ namespace api::v1
 			{
 				auto redisClientPtr = getRedisClient();
 				co_await redisClientPtr->execCommandCoro("del %s", auth.data());
-				ret["code"] = k200OK;
-				ret["msg"] = "Successfully.";
-				callback(HttpResponse::newHttpJsonResponse(ret));
+
+				auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "Successfully.");
+				callback(resp);
 			}
 			else if (count == 0)
 			{
-				ret["code"] = k404NotFound;
-				ret["msg"] = "No resources deleted";
-				auto resp = HttpResponse::newHttpJsonResponse(ret);
-				resp->setStatusCode(k404NotFound);
+				auto resp = Utils::Common::makeHttpJsonResponse(k404NotFound, "No resources deleted.");
 				callback(resp);
 			}
 			else
 			{
 				LOG_FATAL << "Delete more than one records: " << count;
-				ret["code"] = k500InternalServerError;
-				ret["msg"] = "Something error.";
-				auto resp = HttpResponse::newHttpJsonResponse(ret);
-				resp->setStatusCode(k500InternalServerError);
+				auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "Something error.");
 				callback(resp);
 			}
 		}
 		catch (const DrogonDbException &err)
 		{
-			ret["code"] = k500InternalServerError;
-			ret["msg"] = "Database error.";
-			auto resp = HttpResponse::newHttpJsonResponse(ret);
-			resp->setStatusCode(k500InternalServerError);
+			auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "Database error.");
 			callback(resp);
 		}
 		co_return;
@@ -287,13 +239,9 @@ namespace api::v1
 	{
 		auto jsonPtr = req->jsonObject();
 		auto id = req->getAttributes()->get<int64_t>("jwt_userid");
-		Json::Value resJson;
 		if (!jsonPtr)
 		{
-			resJson["code"] = k400BadRequest;
-			resJson["msg"] = "No json object is found in the request";
-			auto resp = HttpResponse::newHttpJsonResponse(resJson);
-			resp->setStatusCode(k400BadRequest);
+			auto resp = Utils::Common::makeHttpJsonResponse(k400BadRequest, "No json object is found in the request.");
 			callback(resp);
 			co_return;
 		}
@@ -307,10 +255,7 @@ namespace api::v1
 			std::string err;
 			if (!Users::validateJsonForUpdate(*jsonPtr, err))
 			{
-				resJson["code"] = k400BadRequest;
-				resJson["msg"] = err;
-				auto resp = HttpResponse::newHttpJsonResponse(resJson);
-				resp->setStatusCode(k400BadRequest);
+				auto resp = Utils::Common::makeHttpJsonResponse(k400BadRequest, err);
 				callback(resp);
 				co_return;
 			}
@@ -319,10 +264,7 @@ namespace api::v1
 		catch (const std::exception &e)
 		{
 			LOG_ERROR << e.what();
-			resJson["code"] = k400BadRequest;
-			resJson["msg"] = "Field type error";
-			auto resp = HttpResponse::newHttpJsonResponse(resJson);
-			resp->setStatusCode(k400BadRequest);
+			auto resp = Utils::Common::makeHttpJsonResponse(k400BadRequest, "Field type error.");
 			callback(resp);
 			co_return;
 		}
@@ -335,36 +277,25 @@ namespace api::v1
 			auto count = co_await mapper.update(object);
 			if (count == 1)
 			{
-				resJson["code"] = k200OK;
-				resJson["msg"] = "successed";
-				auto resp = HttpResponse::newHttpJsonResponse(resJson);
+				auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "Update successed.");
 				callback(resp);
 			}
 			else if (count == 0)
 			{
-				resJson["code"] = k404NotFound;
-				resJson["msg"] = "No resources are updated";
-				auto resp = HttpResponse::newHttpJsonResponse(resJson);
-				resp->setStatusCode(k404NotFound);
+				auto resp = Utils::Common::makeHttpJsonResponse(k404NotFound, "No resources are updated.");
 				callback(resp);
 			}
 			else
 			{
 				LOG_FATAL << "More than one resource is updated: " << count;
-				resJson["code"] = k500InternalServerError;
-				resJson["msg"] = "database error";
-				auto resp = HttpResponse::newHttpJsonResponse(resJson);
-				resp->setStatusCode(k500InternalServerError);
+				auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
 				callback(resp);
 			}
 		}
 		catch (const DrogonDbException &err)
 		{
 			LOG_ERROR << err.base().what();
-			resJson["code"] = k500InternalServerError;
-			resJson["msg"] = "database error.";
-			auto resp = HttpResponse::newHttpJsonResponse(resJson);
-			resp->setStatusCode(k500InternalServerError);
+			auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
 			callback(resp);
 		}
 		co_return;
@@ -375,33 +306,25 @@ namespace api::v1
 		auto dbClientPtr = getDbClient();
 		CoroMapper<Users> mapper(dbClientPtr);
 
-		Json::Value resJson;
 		try
 		{
 			auto userJson = (co_await mapper.findByPrimaryKey(id)).toJson();
 			userJson.removeMember("pwd");
 
-			resJson["code"] = k200OK;
-			resJson["data"] = userJson;
-			callback(HttpResponse::newHttpJsonResponse(resJson));
+			auto resp = Utils::Common::makeHttpJsonResponse(k200OK, "", userJson);
+			callback(resp);
 		}
 		catch (const DrogonDbException &err)
 		{
 			const orm::UnexpectedRows *s = dynamic_cast<const orm::UnexpectedRows *>(&err.base());
 			if (s)
 			{
-				resJson["code"] = k404NotFound;
-				resJson["msg"] = "User[" + std::to_string(id) + "] not found.";
-				auto resp = HttpResponse::newHttpJsonResponse(resJson);
-				resp->setStatusCode(k404NotFound);
+				auto resp = Utils::Common::makeHttpJsonResponse(k404NotFound, "User[" + std::to_string(id) + "] not found.");
 				callback(resp);
 				co_return;
 			}
 			LOG_ERROR << err.base().what();
-			resJson["code"] = k500InternalServerError;
-			resJson["msg"] = "database error";
-			auto resp = HttpResponse::newHttpJsonResponse(resJson);
-			resp->setStatusCode(k500InternalServerError);
+			auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, "database error.");
 			callback(resp);
 		}
 		co_return;
