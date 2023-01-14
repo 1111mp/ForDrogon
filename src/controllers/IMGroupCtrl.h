@@ -32,12 +32,12 @@ namespace api::v1
   private:
     orm::DbClientPtr getDbClient()
     {
-      return drogon::app().getDbClient(dbClientName_);
+      return drogon::app().getFastDbClient(dbClientName_);
     }
 
     nosql::RedisClientPtr getRedisClient()
     {
-      return drogon::app().getRedisClient(redieClientName_);
+      return drogon::app().getFastRedisClient(redieClientName_);
     }
 
     Task<Users> getUser(const DbClientPtr &clientPtr, const int32_t &id)

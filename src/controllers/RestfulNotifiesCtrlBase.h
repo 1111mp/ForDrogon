@@ -42,7 +42,7 @@ class RestfulNotifiesCtrlBase : public RestfulController
 
     orm::DbClientPtr getDbClient() 
     {
-        return drogon::app().getDbClient(dbClientName_);
+        return drogon::app().getFastDbClient(dbClientName_);
     }
 
   protected:

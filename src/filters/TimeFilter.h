@@ -28,7 +28,7 @@ namespace api::v1::filters
 
     nosql::RedisClientPtr getRedisClient()
     {
-      return drogon::app().getRedisClient(redieClientName_);
+      return drogon::app().getFastRedisClient(redieClientName_);
     }
 
   private:

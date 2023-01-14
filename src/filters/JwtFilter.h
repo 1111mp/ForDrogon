@@ -12,14 +12,12 @@ using namespace drogon;
 namespace api::v1::filters
 {
 
-  class JwtFilter : public HttpFilter<JwtFilter>
+  class JwtFilter : public drogon::HttpCoroFilter<JwtFilter>
   {
   public:
     JwtFilter() = default;
 
-    virtual void doFilter(const HttpRequestPtr &req,
-                          FilterCallback &&fcb,
-                          FilterChainCallback &&fccb) override;
+    virtual Task<HttpResponsePtr> doFilter(const HttpRequestPtr &req) override;
   };
 
 }
