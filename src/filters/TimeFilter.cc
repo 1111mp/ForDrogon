@@ -13,14 +13,8 @@ namespace api::v1::filters
 
 	Task<HttpResponsePtr> TimeFilter::doFilter(const HttpRequestPtr &req)
 	{
-		auto userID = req->getHeader("userid");
-
-		if (userID.empty())
-		{
-			co_return HttpResponse::newNotFoundResponse();
-		}
-
-		auto key = app().getCustomConfig()["redis"]["limit_key"].asString() + "_" + userID;
+		auto path = req->getPath();
+		auto key = app().getCustomConfig()["redis"]["limit_key"].asString() + "_" + path;
 		const trantor::Date now = trantor::Date::date();
 		auto redisClientPtr = getRedisClient();
 
