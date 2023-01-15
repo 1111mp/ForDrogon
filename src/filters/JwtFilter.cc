@@ -6,6 +6,7 @@
 
 #include "JwtFilter.h"
 #include "jwt/JWT.h"
+#include "common/Common.h"
 
 using namespace drogon;
 using namespace Utils::jwt;
@@ -24,29 +25,19 @@ namespace api::v1::filters
 
 		if (token.empty() || userid.empty())
 		{
-			Json::Value resultJson;
-			resultJson["code"] = k401Unauthorized;
-			resultJson["msg"] = "Authentication Error.";
-
-			auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-			resp->setStatusCode(k401Unauthorized);
-
+			auto resp = Utils::Common::makeHttpJsonResponse(k401Unauthorized, "Authentication Error.");
 			co_return resp;
 		}
 
 		try
 		{
-			auto redisClientPtr = drogon::app().getFastRedisClient();
+			auto redisClientPtr = getRedisClient();
 			auto auth = drogon::app().getCustomConfig()["redis"]["auth_key"].asString() + "_" + userid;
 
 			auto result = co_await redisClientPtr->execCommandCoro("hget %s %s", auth.data(), token.data());
 			if (result.isNil())
 			{
-				Json::Value resultJson;
-				resultJson["code"] = k401Unauthorized;
-				resultJson["msg"] = "Token is invalid.";
-				auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-				resp->setStatusCode(k401Unauthorized);
+				auto resp = Utils::Common::makeHttpJsonResponse(k401Unauthorized, "Authentication is invalid.");
 				co_return resp;
 			}
 
@@ -54,11 +45,7 @@ namespace api::v1::filters
 
 			if ((&jwtAttributes) == nullptr)
 			{
-				Json::Value resultJson;
-				resultJson["code"] = k401Unauthorized;
-				resultJson["msg"] = "Token is invalid.";
-				auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-				resp->setStatusCode(k401Unauthorized);
+				auto resp = Utils::Common::makeHttpJsonResponse(k401Unauthorized, "Authentication is invalid.");
 				co_return resp;
 			}
 
@@ -76,11 +63,7 @@ namespace api::v1::filters
 		catch (const std::exception &err)
 		{
 			LOG_ERROR << "JwtFilter error: " << err.what();
-			Json::Value resultJson;
-			resultJson["code"] = k401Unauthorized;
-			resultJson["msg"] = err.what();
-			auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-			resp->setStatusCode(k401Unauthorized);
+			auto resp = Utils::Common::makeHttpJsonResponse(k401Unauthorized, err.what());
 			co_return resp;
 		}
 	}

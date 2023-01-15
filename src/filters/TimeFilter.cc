@@ -5,20 +5,19 @@
  */
 
 #include "TimeFilter.h"
+#include "common/Common.h"
 
 using namespace drogon;
 namespace api::v1::filters
 {
 
-	void TimeFilter::doFilter(const HttpRequestPtr &req,
-														FilterCallback &&fcb,
-														FilterChainCallback &&fccb)
+	Task<HttpResponsePtr> TimeFilter::doFilter(const HttpRequestPtr &req)
 	{
 		auto userID = req->getHeader("userid");
 
 		if (userID.empty())
 		{
-			return fcb(HttpResponse::newNotFoundResponse());
+			co_return HttpResponse::newNotFoundResponse();
 		}
 
 		auto key = app().getCustomConfig()["redis"]["limit_key"].asString() + "_" + userID;
@@ -27,58 +26,41 @@ namespace api::v1::filters
 
 		try
 		{
-			auto lastDate = redisClientPtr->execCommandSync<trantor::Date>(
-					[](const nosql::RedisResult &r)
-					{
-						return trantor::Date(std::atoll(r.asString().data()));
-					},
-					"get %s", key.data());
+			auto result = co_await redisClientPtr->execCommandCoro("get %s", key.data());
+			if (result.isNil())
+			{
+				// First visit, insert visitDate.
+				co_await updateCache(key, now);
+				co_return {};
+			}
+
+			auto lastDate = trantor::Date(std::atoll(result.asString().data()));
 			LOG_TRACE << "last:" << lastDate.toFormattedString(false);
 
-			updateCache(key, now);
+			co_await updateCache(key, now);
 
 			if (now > lastDate.after(10))
 			{
 				// 10 sec later can visit again.
-				return fccb();
+				co_return {};
 			}
 
-			Json::Value resultJson;
-			resultJson["code"] = k429TooManyRequests;
-			resultJson["msg"] = "Access interval should be at least 10 seconds.";
-			auto resp = HttpResponse::newHttpJsonResponse(resultJson);
-			resp->setStatusCode(k429TooManyRequests);
-			return fcb(resp);
+			auto resp = Utils::Common::makeHttpJsonResponse(k429TooManyRequests, "Access interval should be at least 10 seconds.");
+			co_return resp;
 		}
-		catch (const std::exception &e)
+		catch (const std::exception &err)
 		{
-			// First visit, insert visitDate.
-			try
-			{
-				updateCache(key, now);
-			}
-			catch (const std::exception &err)
-			{
-				LOG_ERROR << err.what();
-				auto resp = HttpResponse::newHttpJsonResponse(err.what());
-				resp->setStatusCode(k500InternalServerError);
-				return fcb(resp);
-			}
-
-			return fccb();
+			LOG_ERROR << err.what();
+			auto resp = Utils::Common::makeHttpJsonResponse(k500InternalServerError, err.what());
+			co_return resp;
 		}
 	}
 
-	void TimeFilter::updateCache(const std::string &key, const trantor::Date &date)
+	Task<void> TimeFilter::updateCache(const std::string &key, const trantor::Date &date)
 	{
 		auto value = std::to_string(date.microSecondsSinceEpoch());
 
-		getRedisClient()->execCommandSync<std::string>(
-				[](const nosql::RedisResult &r)
-				{
-					return r.asString();
-				},
-				"set %s %s", key.data(), value.data());
+		co_await getRedisClient()->execCommandCoro("set %s %s", key.data(), value.data());
 	}
 
 }
