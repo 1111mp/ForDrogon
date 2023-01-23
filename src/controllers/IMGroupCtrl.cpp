@@ -6,7 +6,7 @@ namespace api::v1
 
   Task<void> Group::create(const HttpRequestPtr req, std::function<void(const HttpResponsePtr &)> callback)
   {
-    auto jsonPtr = *req->getJsonObject();
+    auto jsonPtr = *(req->getJsonObject());
     auto type = jsonPtr["type"].asInt();
     auto members = jsonPtr["members"];
 
